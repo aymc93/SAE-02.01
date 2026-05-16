@@ -8,10 +8,7 @@ public class ModeleTerrain {
     public static final int TAILLE_TUILE = 64;
     private List<ModeleObstacle> modeleObstacles;
 
-
     private int niveauActuel = 1;
-    private String dossierSprites = "Level1-10"; // Valeur par défaut
-
 
     private int ligneEntree;
     private int colonneEntree;
@@ -19,6 +16,7 @@ public class ModeleTerrain {
     private int colonneSortie;
 
     private ModeleTypeTuile[][] grille;
+    private int[][] variations; // sauvegarde l'aléatoire de chaque case
     private int nbLignes;
     private int nbColonnes;
 
@@ -44,23 +42,17 @@ public class ModeleTerrain {
         nbLignes   = CARTE.length;
         nbColonnes = CARTE[0].length;
         grille     = new ModeleTypeTuile[nbLignes][nbColonnes];
+        variations = new int[nbLignes][nbColonnes];
         modeleObstacles = new ArrayList<>();
 
-        setNiveau(1); // On initialise le jeu au niveau 1
+        setNiveau(1);
         chargerCarte();
         placerPortes();
         placerObstacles();
     }
 
-    //Change le niveau et met à jour le dossier des sprites
-
     public void setNiveau(int niveau) {
         this.niveauActuel = niveau;
-
-        int debutDizaine = (((niveau - 1) / 10) * 10) + 1;
-        int finDizaine = debutDizaine + 9;
-        this.dossierSprites = "Level" + debutDizaine + "-" + finDizaine;
-
         placerPortes();
         placerObstacles();
     }
@@ -69,16 +61,19 @@ public class ModeleTerrain {
         return niveauActuel;
     }
 
-    public String getDossierSprites() {
-        return dossierSprites;
-    }
-
     private void chargerCarte() {
         for (int l = 0; l < nbLignes; l++) {
             for (int c = 0; c < nbColonnes; c++) {
                 grille[l][c] = ModeleTypeTuile.fromInt(CARTE[l][c]);
+                // NOUVEAU : On génère un nombre aléatoire (ex: 0 à 999) qu'on stocke
+                variations[l][c] = (int) (Math.random() * 1000);
             }
         }
+    }
+
+    // Permet à la vue de récupérer le chiffre aléatoire fixe de cette case
+    public int getVariation(int ligne, int colonne) {
+        return variations[ligne][colonne];
     }
 
     private void placerPortes() {
@@ -99,26 +94,40 @@ public class ModeleTerrain {
     public int getNbColonnes() { return nbColonnes; }
 
     private void placerObstacles() {
-        modeleObstacles.clear(); // On vide la liste avant de remplir selon le niveau
+        modeleObstacles.clear();
 
         if (niveauActuel <= 10) {
-            // PLACEMENT POUR LES NIVEAUX 1 À 10
             modeleObstacles.add(new ModeleObstacle(5, 5, ModeleTypeObstacle.BARIL));
-            modeleObstacles.add(new ModeleObstacle(5, 6, ModeleTypeObstacle.CAILLOU));
-        }
-        else if (niveauActuel <= 20) {
-            modeleObstacles.add(new ModeleObstacle(2, 10, ModeleTypeObstacle.BARIL));
-            modeleObstacles.add(new ModeleObstacle(8, 3, ModeleTypeObstacle.CAILLOU));
-        }
-        else if (niveauActuel <= 30) {
-            modeleObstacles.add(new ModeleObstacle(7, 13, ModeleTypeObstacle.BARIL));
-            modeleObstacles.add(new ModeleObstacle(12, 2, ModeleTypeObstacle.CAILLOU));
-        }
-        else if (niveauActuel <= 40) {
-            modeleObstacles.add(new ModeleObstacle(7, 13, ModeleTypeObstacle.BARIL));
-            modeleObstacles.add(new ModeleObstacle(12, 2, ModeleTypeObstacle.CAILLOU));
-        }
-        else if (niveauActuel <= 50) {
+            modeleObstacles.add(new ModeleObstacle(4, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(3, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(2, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(1, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(6, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(7, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(8, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(9, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(12, 5, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(13, 5, ModeleTypeObstacle.BARIL));
+
+            modeleObstacles.add(new ModeleObstacle(1, 9, ModeleTypeObstacle.BARIL));
+            modeleObstacles.add(new ModeleObstacle(2, 9, ModeleTypeObstacle.BARIL));
+
+            modeleObstacles.add(new ModeleObstacle(10, 6, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(12, 6, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(12, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(11, 8, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(10, 8, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(9, 8, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(8, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(7, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(6, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(5, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(4, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(3, 7, ModeleTypeObstacle.CAILLOU));
+            modeleObstacles.add(new ModeleObstacle(2, 7, ModeleTypeObstacle.CAILLOU));
+
+        } else {
+            // Regroupement pour les niveaux > 10 (vu que c'était pareil dans ton code)
             modeleObstacles.add(new ModeleObstacle(7, 13, ModeleTypeObstacle.BARIL));
             modeleObstacles.add(new ModeleObstacle(12, 2, ModeleTypeObstacle.CAILLOU));
         }
