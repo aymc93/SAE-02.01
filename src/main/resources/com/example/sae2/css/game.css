@@ -1,0 +1,13 @@
+.portee-libre {
+    -fx-fill: rgba(30, 200, 30, 0.12);
+    -fx-stroke: rgba(30, 200, 30, 0.60);
+    -fx-stroke-width: 1.5;
+    -fx-stroke-type: inside;
+}
+
+.portee-alerte {
+    -fx-fill: rgba(220, 30, 30, 0.15);
+    -fx-stroke: rgba(220, 30, 30, 0.65);
+    -fx-stroke-width: 1.5;
+    -fx-stroke-type: inside;
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.sae2.controller.GameController"
+            stylesheets="@css/game.css">
+    <center>
+        <Pane fx:id="paneJeu">
+
+            <!-- Terrain (fond) -->
+            <TilePane fx:id="gridTerrain"/>
+
+            <!-- Obstacles -->
+            <Pane fx:id="tilePaneEntites"/>
+
+            <!--
+                Couche tours : pickOnBounds="true" pour recevoir les clics
+                même sur les zones vides. onMouseClicked déclaré ici en FXML.
+                Placée avant l'ennemi → l'ennemi reste visible par-dessus.
+            -->
+            <Pane fx:id="paneTours"
+                  pickOnBounds="true"
+                  onMouseClicked="#placerTour"/>
+
+            <!--
+                Ennemi : mouseTransparent pour ne pas bloquer les clics
+                destinés à paneTours.
+            -->
+            <ImageView fx:id="imageViewEnnemi"
+                       fitWidth="64" fitHeight="64"
+                       preserveRatio="false"
+                       mouseTransparent="true"/>
+
+        </Pane>
+    </center>
+</BorderPane>

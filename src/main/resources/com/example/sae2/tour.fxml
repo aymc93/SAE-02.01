@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.image.ImageView?>
+
+<!--
+    Composant tour : centré sur la case (32,32) dans le repère du Group.
+    Le Group est positionné par GameController à (col*64, ligne*64).
+    Le cercle a un rayon de 192px (3 cases × 64px).
+-->
+<Group xmlns:fx="http://javafx.com/fxml/1"
+       fx:controller="com.example.sae2.controller.ControllerTour">
+
+    <!-- Portée : centrée sur le milieu de la case, rayon = 3 blocs -->
+    <Circle fx:id="portee"
+            centerX="32" centerY="32"
+            radius="192"
+            styleClass="portee-libre"/>
+
+    <!-- Sprite de la tour : occupe toute la case 64×64 -->
+    <ImageView fx:id="spriteView"
+               fitWidth="64" fitHeight="64"
+               preserveRatio="false"/>
+
+</Group>
