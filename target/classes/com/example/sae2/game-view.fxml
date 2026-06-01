@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.sae2.controller.GameController"
+            stylesheets="@css/game.css">
+    <center>
+        <Pane fx:id="paneJeu">
+
+            <!-- Terrain (fond) -->
+            <TilePane fx:id="gridTerrain"/>
+
+            <!-- Obstacles / portes -->
+            <Pane fx:id="tilePaneEntites"/>
+
+            <!--
+                Couche tours :
+                  • pickOnBounds  → reçoit les clics partout
+                  • onMouseClicked  → poser tour / appliquer pouvoir
+                  • onMouseMoved / Entered → déplacer hover_case
+                  • onMouseExited  → cacher hover_case
+            -->
+            <Pane fx:id="paneTours"
+                  pickOnBounds="true"
+                  onMouseClicked="#placerTour"
+                  onMouseMoved="#actualiserHover"
+                  onMouseEntered="#actualiserHover"
+                  onMouseExited="#cacherHover"/>
+
+            <!-- Couche ennemis : les ImageViews sont ajoutées/supprimées dynamiquement -->
+            <Pane fx:id="paneEnnemis" mouseTransparent="true"/>
+
+            <!--
+                Indicateur de pose : snap-to-grid, suit la souris.
+                Visible seulement quand une carte est sélectionnée.
+                mouseTransparent pour laisser passer les clics vers paneTours.
+            -->
+            <ImageView fx:id="hoverCase"
+                       fitWidth="64" fitHeight="64"
+                       preserveRatio="false"
+                       mouseTransparent="true"
+                       visible="false">
+                <image>
+                    <Image url="@images/UI/hover_case.png"/>
+                </image>
+            </ImageView>
+
+        </Pane>
+    </center>
+
+    <!-- ── Panneau bas : deck dynamique ──────────────────────────────────── -->
+    <bottom>
+        <StackPane>
+
+            <!-- Fond (768×120 px) -->
+            <ImageView mouseTransparent="true">
+                <image>
+                    <Image url="@images/UI/panneau_bas.png"/>
+                </image>
+            </ImageView>
+
+            <!--
+                Deux groupes remplis dynamiquement par VueDeck :
+                  groupePouvoirs : BloodBag, Brimstone, SoyMilk
+                  groupeTours    : SimpleTower (x N)
+                Un Region fixe de 51 px les sépare visuellement.
+                spacing="7" et padding="5 0 5 5/0" repris depuis la version statique.
+            -->
+            <HBox alignment="CENTER_LEFT" prefHeight="120">
+
+                <!-- Cartes pouvoirs (rempli par VueDeck) -->
+                <HBox fx:id="groupePouvoirs"
+                      spacing="12"
+                      alignment="CENTER"
+                      style="-fx-padding: 5 0 5 5;"/>
+
+                <!-- Séparateur fixe de 51 px entre le dernier pouvoir et la 1ère tour -->
+                <Region minWidth="51" maxWidth="51"/>
+
+                <!-- Cartes tours (rempli par VueDeck) -->
+                <HBox fx:id="groupeTours"
+                      spacing="12"
+                      alignment="CENTER"
+                      style="-fx-padding: 5 0 5 0;"/>
+
+            </HBox>
+        </StackPane>
+    </bottom>
+</BorderPane>

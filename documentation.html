@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Documentation complète – Tower Defense SAE2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;font-size:14px}
+nav{background:#161b22;border-bottom:2px solid #30363d;padding:0 8px;display:flex;flex-wrap:wrap;gap:2px;position:sticky;top:0;z-index:99}
+nav button{background:none;border:none;color:#8b949e;padding:9px 12px;cursor:pointer;font-size:12px;border-bottom:3px solid transparent;white-space:nowrap;transition:.15s}
+nav button:hover{color:#e6edf3;background:#21262d}
+nav button.on{color:#58a6ff;border-bottom-color:#58a6ff}
+.tab{display:none;padding:24px 28px;max-width:1400px;margin:0 auto}
+.tab.on{display:block}
+.ch{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:18px 22px;margin-bottom:20px}
+.ch h2{font-size:20px;color:#58a6ff;margin-bottom:4px}
+.ch .pkg{font-size:11px;color:#6e7681;font-family:monospace;margin-bottom:8px}
+.ch .role{color:#c9d1d9;line-height:1.6;font-size:13px}
+.bd{display:inline-block;padding:1px 9px;border-radius:10px;font-size:11px;font-weight:700;margin-right:4px;margin-bottom:6px}
+.bm{background:#0d3b2c;color:#3fb950}
+.bv{background:#0c2a4a;color:#58a6ff}
+.bc{background:#3a1f00;color:#ffa657}
+.be{background:#2d1f4e;color:#d2a8ff}
+table{width:100%;border-collapse:collapse;margin-bottom:28px;font-size:12.5px}
+thead tr{background:#21262d}
+th{padding:7px 10px;text-align:left;color:#8b949e;font-weight:600;font-size:11px;border-bottom:2px solid #30363d}
+td{padding:5px 10px;border-bottom:1px solid #161b22;vertical-align:top;line-height:1.55}
+tr:hover td{background:#161b22}
+.n{color:#6e7681;font-family:monospace;font-size:11px;text-align:right;width:38px;padding-right:14px;user-select:none}
+.c{font-family:'Consolas','Courier New',monospace;white-space:pre-wrap;color:#e6edf3;width:44%}
+.e{color:#c9d1d9;width:50%}
+tr.hi td{background:#0d2206}
+tr.wa td{background:#2d1a00}
+tr.in td{background:#071a2e}
+tr.gr td{background:#21262d;font-size:11px;color:#8b949e;font-style:italic}
+.kw{color:#ff7b72}
+.ty{color:#ffa657}
+.st{color:#a5d6ff}
+.cm{color:#8b949e;font-style:italic}
+.nu{color:#79c0ff}
+.an{color:#d2a8ff}
+.me{color:#d2a8ff}
+.se{font-size:11px;font-weight:700;color:#f0883e;background:#1a1208;border-left:3px solid #f0883e;padding:5px 10px;margin:18px 0 6px;border-radius:0 4px 4px 0}
+/* archi */
+.ag{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:800px){.ag{grid-template-columns:1fr}}
+.ab{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px}
+.ab h3{font-size:13px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #30363d}
+.ab li{list-style:none;padding:4px 0;font-size:12px;border-bottom:1px solid #21262d}
+.ab li:last-child{border:none}
+.fn{color:#e6edf3;font-family:monospace;font-weight:600}
+.fd{display:block;font-size:11px;color:#6e7681;margin-top:1px}
+/* faq */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.fg{grid-template-columns:1fr}}
+.fc{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px}
+.fc h3{color:#f0883e;font-size:13px;margin-bottom:8px}
+.fc p{font-size:12px;line-height:1.6;margin-bottom:8px}
+.fc pre{background:#0d1117;border:1px solid #30363d;border-radius:4px;padding:8px;font-size:11.5px;overflow-x:auto;line-height:1.5;color:#e6edf3}
+.rf{font-size:11px;color:#58a6ff;margin-top:6px}
+</style>
+</head>
+<body>
+<nav id="nav">
+<button class="on" onclick="show('archi')">🏗 Architecture</button>
+<button onclick="show('gc')">🎮 GameController</button>
+<button onclick="show('ce')">👾 ControllerEnnemis</button>
+<button onclick="show('ct')">🏰 ControllerTour</button>
+<button onclick="show('me')">💀 ModeleEnnemi</button>
+<button onclick="show('mt')">🗺 ModeleTerrain</button>
+<button onclick="show('tt')">🔲 TypeTuile</button>
+<button onclick="show('mo')">🪨 ModeleTypeObstacle</button>
+<button onclick="show('md')">🃏 ModeleDeck</button>
+<button onclick="show('tc')">🎴 TypeCarte</button>
+<button onclick="show('mp')">⚡ ModeleProjectile</button>
+<button onclick="show('bfs')">🔍 BFS</button>
+<button onclick="show('vd')">🖼 VueDeck</button>
+<button onclick="show('ve')">👁 VueEnnemi</button>
+<button onclick="show('vt')">🌍 VueTerrain</button>
+<button onclick="show('vo')">🚧 VueObstacles</button>
+<button onclick="show('fx')">📄 FXML</button>
+<button onclick="show('ra')">⚡ Raccourcis</button>
+</nav>
+
+<!-- ARCHITECTURE -->
+<div class="tab on" id="archi">
+<div class="ch"><h2>Architecture MVC</h2>
+<div class="role">Ce projet suit le patron <strong>Modèle – Vue – Contrôleur</strong>.<br>
+• <strong>Modèle</strong> : données pures, aucun import JavaFX ni vue<br>
+• <strong>Vue</strong> : affichage uniquement, pas de logique métier<br>
+• <strong>Contrôleur</strong> : fait le lien, gère les événements et les boucles de jeu</div></div>
+<div class="ag">
+<div class="ab"><h3 style="color:#3fb950">📦 Modèle</h3><ul>
+<li><span class="fn">ModeleEnnemi.java</span><span class="fd">Position, vitesse, PV de l'ennemi</span></li>
+<li><span class="fn">ModeleTerrain.java</span><span class="fd">Grille, obstacles, entrée/sortie</span></li>
+<li><span class="fn">TypeTuile.java</span><span class="fd">Enum type de case (sol/mur/coin)</span></li>
+<li><span class="fn">ModeleTypeObstacle.java</span><span class="fd">Enum baril / caillou</span></li>
+<li><span class="fn">ModeleDeck.java</span><span class="fd">Liste des cartes du joueur</span></li>
+<li><span class="fn">TypeCarte.java</span><span class="fd">Enum carte avec dégâts et vitesse</span></li>
+<li><span class="fn">ModeleProjectile.java</span><span class="fd">Position et déplacement d'un projectile</span></li>
+<li><span class="fn">BFS.java</span><span class="fd">Algorithme de calcul de chemin</span></li>
+</ul></div>
+<div class="ab"><h3 style="color:#ffa657">⚙ Contrôleur</h3><ul>
+<li><span class="fn">GameController.java</span><span class="fd">Chef d'orchestre – initialise tout</span></li>
+<li><span class="fn">ControllerEnnemis.java</span><span class="fd">Déplace l'ennemi frame par frame</span></li>
+<li><span class="fn">ControllerTour.java</span><span class="fd">Anime la tour, détecte et tire</span></li>
+</ul></div>
+<div class="ab"><h3 style="color:#58a6ff">🖼 Vue</h3><ul>
+<li><span class="fn">VueDeck.java</span><span class="fd">Affiche les cartes dans les HBox</span></li>
+<li><span class="fn">VueEnnemi.java</span><span class="fd">Sprite GIF de l'ennemi</span></li>
+<li><span class="fn">VueTerrain.java</span><span class="fd">Remplit le TilePane avec les tuiles</span></li>
+<li><span class="fn">VueObstacles.java</span><span class="fd">Dessine obstacles et portes</span></li>
+<li><span class="fn">game-view.fxml</span><span class="fd">Déclaration XML de l'interface</span></li>
+<li><span class="fn">game.css</span><span class="fd">Styles portée tour, carte sélectionnée</span></li>
+</ul></div>
+</div>
+</div>
+<!-- END ARCHITECTURE -->
+
+<!-- GAMECONTROLLER -->
+<div class="tab" id="gc">
+<div class="ch"><h2>GameController.java</h2><div class="pkg">com.example.sae2.controller</div><span class="bd bc">Contrôleur</span>
+<div class="role">Chef d'orchestre du jeu. Lié à game-view.fxml. Gère l'initialisation, les clics, la sélection de cartes, le placement des tours et le spawn des ennemis.</div></div>
+<table><thead><tr><th>Ligne</th><th>Code</th><th>Explication</th></tr></thead><tbody>
+<tr><td class="n">1</td><td class="c"><span class="kw">package</span> com.example.sae2.controller;</td><td class="e">Déclare que cette classe appartient au package <code>controller</code>. Tous les fichiers d'un même dossier partagent ce package.</td></tr>
+<tr class="gr"><td class="n">2</td><td class="c"></td><td class="e">Ligne vide — séparation visuelle.</td></tr>
+<tr><td class="n">3</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.carte.ModeleTerrain;</td><td class="e">Importe la classe du modèle de terrain pour accéder à la grille, aux obstacles et aux coordonnées d'entrée/sortie.</td></tr>
+<tr><td class="n">4</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.deck.ModeleDeck;</td><td class="e">Importe le modèle du deck (liste des cartes disponibles).</td></tr>
+<tr><td class="n">5</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.deck.TypeCarte;</td><td class="e">Importe l'enum des types de cartes (SIMPLE_TOWER, BLOODBAG…).</td></tr>
+<tr><td class="n">6</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.ennemis.ModeleEnnemi;</td><td class="e">Importe le modèle ennemi pour créer des instances et les stocker.</td></tr>
+<tr><td class="n">7</td><td class="c"><span class="kw">import</span> com.example.sae2.vue.carte.VueObstacles;</td><td class="e">Importe la vue des obstacles pour l'instancier dans initialize().</td></tr>
+<tr><td class="n">8</td><td class="c"><span class="kw">import</span> com.example.sae2.vue.carte.VueTerrain;</td><td class="e">Importe la vue du terrain pour l'instancier dans initialize().</td></tr>
+<tr><td class="n">9</td><td class="c"><span class="kw">import</span> com.example.sae2.vue.deck.VueDeck;</td><td class="e">Importe la vue du deck pour créer les ImageViews des cartes.</td></tr>
+<tr><td class="n">10</td><td class="c"><span class="kw">import</span> com.example.sae2.vue.ennemis.VueEnnemi;</td><td class="e">Importe la vue de l'ennemi pour créer le sprite GIF.</td></tr>
+<tr><td class="n">11</td><td class="c"><span class="kw">import</span> javafx.fxml.FXML;</td><td class="e">Importe l'annotation <code>@FXML</code> qui permet à JavaFX d'injecter automatiquement les nœuds déclarés dans le fichier .fxml.</td></tr>
+<tr><td class="n">12</td><td class="c"><span class="kw">import</span> javafx.fxml.FXMLLoader;</td><td class="e">Permet de charger dynamiquement un fichier .fxml (utilisé pour instancier une tour en cours de jeu).</td></tr>
+<tr><td class="n">13</td><td class="c"><span class="kw">import</span> javafx.scene.Group;</td><td class="e">La tour chargée via tour.fxml est un <code>Group</code> (conteneur sans mise en page propre).</td></tr>
+<tr><td class="n">14</td><td class="c"><span class="kw">import</span> javafx.scene.image.ImageView;</td><td class="e">Utilisé pour le <code>hoverCase</code> et les cartes du deck.</td></tr>
+<tr><td class="n">15</td><td class="c"><span class="kw">import</span> javafx.scene.input.MouseButton;</td><td class="e">Enum pour distinguer le clic gauche (PRIMARY) des autres boutons.</td></tr>
+<tr><td class="n">16</td><td class="c"><span class="kw">import</span> javafx.scene.input.MouseEvent;</td><td class="e">Type des événements souris passés aux méthodes FXML (placerTour, actualiserHover…).</td></tr>
+<tr><td class="n">17</td><td class="c"><span class="kw">import</span> javafx.scene.layout.HBox;</td><td class="e">Les deux rangées de cartes du deck sont des <code>HBox</code> (conteneurs horizontaux).</td></tr>
+<tr><td class="n">18</td><td class="c"><span class="kw">import</span> javafx.scene.layout.Pane;</td><td class="e">Plusieurs couches du terrain sont des <code>Pane</code> (positionnement absolu libre).</td></tr>
+<tr><td class="n">19</td><td class="c"><span class="kw">import</span> javafx.scene.layout.TilePane;</td><td class="e">La grille du terrain est un <code>TilePane</code> (place ses enfants en grille régulière automatiquement).</td></tr>
+<tr class="gr"><td class="n">20</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">21</td><td class="c"><span class="kw">import</span> java.io.IOException;</td><td class="e">Exception levée si le fichier tour.fxml est introuvable lors du chargement dynamique.</td></tr>
+<tr><td class="n">22</td><td class="c"><span class="kw">import</span> java.util.ArrayList;</td><td class="e">Import non utilisé directement ici mais souvent inclus par précaution.</td></tr>
+<tr><td class="n">23</td><td class="c"><span class="kw">import</span> java.util.HashMap;</td><td class="e">Implémentation de Map utilisée pour <code>toursControlleurs</code> et <code>ennemisActifs</code>.</td></tr>
+<tr><td class="n">24</td><td class="c"><span class="kw">import</span> java.util.List;</td><td class="e">Import de l'interface List.</td></tr>
+<tr><td class="n">25</td><td class="c"><span class="kw">import</span> java.util.Map;</td><td class="e">Interface Map utilisée pour les deux dictionnaires (tours et ennemis).</td></tr>
+<tr class="gr"><td class="n">26</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">27</td><td class="c"><span class="kw">public class</span> <span class="ty">GameController</span> {</td><td class="e"><strong>Déclaration de la classe.</strong> <code>public</code> = accessible de partout. C'est la classe liée à <code>game-view.fxml</code> via l'attribut <code>fx:controller</code>.</td></tr>
+<tr class="gr"><td class="n">28</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">29</td><td class="c"><span class="cm">// ── Nœuds FXML ───</span></td><td class="e">Commentaire de séparation visuelle.</td></tr>
+<tr class="hi"><td class="n">30</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">Pane</span> paneJeu;</td><td class="e"><code>@FXML</code> : JavaFX injecte automatiquement le nœud dont <code>fx:id="paneJeu"</code> dans game-view.fxml. C'est le conteneur principal qui contient toutes les couches du terrain.</td></tr>
+<tr class="hi"><td class="n">31</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">TilePane</span> gridTerrain;</td><td class="e">Grille de fond (tuiles sol/murs). Remplie par VueTerrain. Un TilePane place ses enfants automatiquement en colonnes.</td></tr>
+<tr class="hi"><td class="n">32</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">Pane</span> tilePaneEntites;</td><td class="e">Couche superposée au terrain pour les obstacles (barils, cailloux) et les portes. Remplie par VueObstacles.</td></tr>
+<tr class="hi"><td class="n">33</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">Pane</span> paneTours;</td><td class="e">Couche où sont ajoutées les tours. C'est aussi cette couche qui capte les clics souris (<code>pickOnBounds=true</code> dans le FXML).</td></tr>
+<tr class="hi"><td class="n">34</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">Pane</span> paneEnnemis;</td><td class="e">Couche des ennemis. Chaque ennemi y ajoute son ImageView. <code>mouseTransparent=true</code> dans le FXML : les clics la traversent.</td></tr>
+<tr class="hi"><td class="n">35</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">ImageView</span> hoverCase;</td><td class="e">L'image de survol (carré semi-transparent qui suit la souris). Invisible par défaut, visible quand une carte est sélectionnée.</td></tr>
+<tr class="gr"><td class="n">36</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">37</td><td class="c"><span class="cm">// Conteneurs du deck</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">38</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">HBox</span> groupePouvoirs;</td><td class="e">La rangée de cartes pouvoirs (BloodBag, Brimstone, SoyMilk). Remplie dynamiquement par VueDeck.</td></tr>
+<tr class="hi"><td class="n">39</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">HBox</span> groupeTours;</td><td class="e">La rangée de cartes tours (SimpleTower×2). Remplie dynamiquement par VueDeck.</td></tr>
+<tr class="gr"><td class="n">40</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">41</td><td class="c"><span class="cm">// ── Modèle ───</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">42</td><td class="c"><span class="kw">private</span> <span class="ty">ModeleTerrain</span> modele;</td><td class="e">Le modèle du terrain : contient la grille TypeTuile[][], les obstacles, les coordonnées entrée/sortie.</td></tr>
+<tr><td class="n">43</td><td class="c"><span class="kw">private</span> <span class="ty">ModeleDeck</span> modeleDeck;</td><td class="e">Le modèle du deck : liste mutable des cartes restantes.</td></tr>
+<tr><td class="n">44</td><td class="c"><span class="kw">private int</span> T;</td><td class="e">Taille d'une tuile en pixels (64). Copié depuis <code>ModeleTerrain.TAILLE_TUILE</code> pour éviter la répétition.</td></tr>
+<tr class="gr"><td class="n">45</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">46</td><td class="c"><span class="cm">// ── Vue du deck ───</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">47</td><td class="c"><span class="kw">private</span> <span class="ty">VueDeck</span> vueDeck;</td><td class="e">Référence à la vue du deck pour pouvoir appeler <code>masquerCarte()</code> après utilisation.</td></tr>
+<tr class="gr"><td class="n">48</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">49</td><td class="c"><span class="cm">// clé "ligne,col" → contrôleur de la tour</span></td><td class="e">Commentaire expliquant le format de la clé.</td></tr>
+<tr class="hi"><td class="n">50</td><td class="c"><span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">ControllerTour</span>&gt; toursControlleurs = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();</td><td class="e"><strong>Dictionnaire clé→contrôleur de tour.</strong> Clé = "ligne,col" (ex: "3,5"). Permet de retrouver une tour pour lui appliquer un pouvoir, et d'empêcher d'en poser deux sur la même case.</td></tr>
+<tr class="gr"><td class="n">51</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">52</td><td class="c"><span class="cm">// Liste des ennemis actifs (modèle → contrôleur)</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">53</td><td class="c"><span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">ModeleEnnemi</span>, <span class="ty">ControllerEnnemis</span>&gt; ennemisActifs = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();</td><td class="e"><strong>Dictionnaire de tous les ennemis vivants.</strong> Quand un ennemi meurt, le callback <code>onMort</code> appelle <code>ennemisActifs.remove(modEnnemi)</code> pour le retirer.</td></tr>
+<tr class="gr"><td class="n">54</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">55</td><td class="c"><span class="cm">// Référence au dernier ennemi spawné</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">56</td><td class="c"><span class="kw">private</span> <span class="ty">ModeleEnnemi</span> modeleEnnemiActuel = <span class="kw">null</span>;</td><td class="e">Référence vers l'ennemi actif. Les tours placées reçoivent cette référence pour le cibler. <code>null</code> au départ, assignée par <code>spawnerEnnemi()</code>.</td></tr>
+<tr class="gr"><td class="n">57</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">58</td><td class="c"><span class="cm">// ── Sélection en cours ───</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">59</td><td class="c"><span class="kw">private</span> <span class="ty">TypeCarte</span> carteSelectionnee = <span class="kw">null</span>;</td><td class="e">Le type de la carte actuellement sélectionnée. <code>null</code> = aucune carte sélectionnée.</td></tr>
+<tr><td class="n">60</td><td class="c"><span class="kw">private</span> <span class="ty">ImageView</span> carteSelectionneeView = <span class="kw">null</span>;</td><td class="e">L'ImageView de la carte sélectionnée. Nécessaire pour retirer la classe CSS de sélection quand on désélectionne.</td></tr>
+<tr class="gr"><td class="n">61</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">62</td><td class="c"><span class="cm">// =========</span></td><td class="e">Séparateur visuel.</td></tr>
+<tr><td class="n">63</td><td class="c"><span class="cm">// Initialisation</span></td><td class="e">Commentaire de section.</td></tr>
+<tr><td class="n">64</td><td class="c"><span class="cm">// =========</span></td><td class="e">Séparateur visuel.</td></tr>
+<tr class="gr"><td class="n">65</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">66</td><td class="c"><span class="an">@FXML</span></td><td class="e">Annotation indiquant que la méthode suivante est liée au FXML.</td></tr>
+<tr class="hi"><td class="n">67</td><td class="c"><span class="kw">public void</span> <span class="me">initialize</span>() {</td><td class="e"><strong>Point d'entrée de l'initialisation.</strong> JavaFX appelle automatiquement cette méthode après avoir injecté tous les @FXML. C'est ici que tout le jeu est mis en place.</td></tr>
+<tr><td class="n">68</td><td class="c">modele = <span class="kw">new</span> <span class="ty">ModeleTerrain</span>();</td><td class="e">Crée le modèle du terrain. Le constructeur charge la grille CARTE[][], les obstacles OBSTACLES[][], et place les portes à des lignes aléatoires.</td></tr>
+<tr><td class="n">69</td><td class="c">modele.<span class="me">setNiveau</span>(<span class="nu">5</span>);</td><td class="e">Définit le niveau 5, ce qui détermine le dossier de sprites utilisé ("Level1-10"). Appelle en interne <code>placerPortes()</code> et <code>placerObstacles()</code>.</td></tr>
+<tr class="gr"><td class="n">70</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">71</td><td class="c"><span class="kw">int</span> cols = modele.<span class="me">getNbColonnes</span>();</td><td class="e">Récupère le nombre de colonnes (12) depuis le modèle.</td></tr>
+<tr><td class="n">72</td><td class="c"><span class="kw">int</span> rows = modele.<span class="me">getNbLignes</span>();</td><td class="e">Récupère le nombre de lignes (12).</td></tr>
+<tr><td class="n">73</td><td class="c">T = <span class="ty">ModeleTerrain</span>.TAILLE_TUILE;</td><td class="e">Copie la constante statique 64 dans le champ T. Évite d'écrire <code>ModeleTerrain.TAILLE_TUILE</code> à chaque calcul.</td></tr>
+<tr class="gr"><td class="n">74</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">75</td><td class="c">paneJeu.<span class="me">setPrefSize</span>(cols * T, rows * T);</td><td class="e">Définit la taille préférée du conteneur principal : 12×64 = 768px de large et de haut. Sans ça le Pane ne saurait pas quelle taille avoir.</td></tr>
+<tr class="gr"><td class="n">76</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">77</td><td class="c">gridTerrain.<span class="me">setPrefTileWidth</span>(T);</td><td class="e">Chaque cellule du TilePane fait 64px de large.</td></tr>
+<tr><td class="n">78</td><td class="c">gridTerrain.<span class="me">setPrefTileHeight</span>(T);</td><td class="e">Chaque cellule du TilePane fait 64px de haut.</td></tr>
+<tr><td class="n">79</td><td class="c">gridTerrain.<span class="me">setPrefColumns</span>(cols);</td><td class="e">Le TilePane organisera ses enfants sur 12 colonnes (puis retour à la ligne).</td></tr>
+<tr><td class="n">80</td><td class="c">gridTerrain.<span class="me">setPrefSize</span>(cols * T, rows * T);</td><td class="e">Taille totale du TilePane = taille totale du terrain (768×768px).</td></tr>
+<tr class="hi"><td class="n">81</td><td class="c"><span class="kw">new</span> <span class="ty">VueTerrain</span>(modele, gridTerrain);</td><td class="e"><strong>Crée et peuple la vue du terrain.</strong> VueTerrain lit la grille du modèle et ajoute une ImageView (tuile) par case dans le TilePane. On n'a pas besoin de stocker la référence.</td></tr>
+<tr class="gr"><td class="n">82</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">83</td><td class="c"><span class="kw">new</span> <span class="ty">VueObstacles</span>(modele, tilePaneEntites);</td><td class="e"><strong>Dessine les obstacles et les portes</strong> sur le Pane en positionnement absolu (layoutX/Y = col×64 et ligne×64).</td></tr>
+<tr class="gr"><td class="n">84</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">85</td><td class="c">paneTours.<span class="me">setPrefSize</span>(cols * T, rows * T);</td><td class="e">La couche tours doit couvrir exactement tout le terrain pour capturer les clics souris sur toute la surface.</td></tr>
+<tr class="gr"><td class="n">86</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">87</td><td class="c"><span class="me">spawnerEnnemi</span>();</td><td class="e"><strong>Spawn du premier ennemi.</strong> Délégué à la méthode dédiée ci-dessous pour garder initialize() lisible.</td></tr>
+<tr class="gr"><td class="n">88</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">89</td><td class="c"><span class="cm">// Deck : modèle + vue liés</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">90</td><td class="c">modeleDeck = <span class="kw">new</span> <span class="ty">ModeleDeck</span>();</td><td class="e">Crée le modèle du deck. Le constructeur initialise la liste avec les 5 cartes de départ (3 pouvoirs + 2 tours).</td></tr>
+<tr class="hi"><td class="n">91</td><td class="c">vueDeck = <span class="kw">new</span> <span class="ty">VueDeck</span>(modeleDeck, groupePouvoirs, groupeTours, <span class="kw">this</span>::<span class="me">selectionnerCarte</span>);</td><td class="e"><strong>Crée la vue du deck.</strong> <code>this::selectionnerCarte</code> est une référence de méthode : VueDeck l'appellera quand le joueur clique une carte. Les ImageViews sont créées et ajoutées aux HBox immédiatement.</td></tr>
+<tr><td class="n">92</td><td class="c">}</td><td class="e">Fin de initialize().</td></tr>
+<tr class="gr"><td class="n">93</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">94</td><td class="c"><span class="cm">// =========</span></td><td class="e">Séparateur.</td></tr>
+<tr><td class="n">95</td><td class="c"><span class="cm">// Sélection de carte</span></td><td class="e">Commentaire de section.</td></tr>
+<tr><td class="n">96</td><td class="c"><span class="cm">// =========</span></td><td class="e">Séparateur.</td></tr>
+<tr class="gr"><td class="n">97</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">98</td><td class="c"><span class="kw">private void</span> <span class="me">selectionnerCarte</span>(<span class="ty">TypeCarte</span> type, <span class="ty">ImageView</span> vue) {</td><td class="e">Callback appelé par VueDeck à chaque clic sur une carte. Reçoit le type de la carte et son ImageView.</td></tr>
+<tr><td class="n">99</td><td class="c"><span class="kw">if</span> (carteSelectionneeView == vue) {</td><td class="e">Si on reclique sur la carte déjà sélectionnée → désélectionner. Comparaison d'identité d'objet (<code>==</code> sur les références).</td></tr>
+<tr><td class="n">100</td><td class="c"><span class="cm">// Clic sur la carte déjà sélectionnée → désélectionner</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">101</td><td class="c"><span class="me">deselectionner</span>();</td><td class="e">Retire le halo CSS, remet à null les deux champs de sélection, cache le hoverCase.</td></tr>
+<tr><td class="n">102</td><td class="c">} <span class="kw">else</span> {</td><td class="e">Sinon : on sélectionne une nouvelle carte.</td></tr>
+<tr><td class="n">103</td><td class="c"><span class="me">deselectionner</span>();</td><td class="e">D'abord on désélectionne l'éventuelle carte précédemment sélectionnée (retire son halo).</td></tr>
+<tr><td class="n">104</td><td class="c">carteSelectionnee = type;</td><td class="e">Mémorise le type de la carte nouvellement sélectionnée.</td></tr>
+<tr><td class="n">105</td><td class="c">carteSelectionneeView = vue;</td><td class="e">Mémorise l'ImageView pour pouvoir retirer son CSS plus tard.</td></tr>
+<tr class="hi"><td class="n">106</td><td class="c">vue.<span class="me">getStyleClass</span>().<span class="me">add</span>(<span class="st">"carte-selectionnee"</span>);</td><td class="e"><strong>Ajoute la classe CSS</strong> <code>carte-selectionnee</code> définie dans game.css. Cela applique le halo doré (<code>dropshadow</code>) autour de la carte.</td></tr>
+<tr><td class="n">107</td><td class="c">}</td><td class="e">Fin du else.</td></tr>
+<tr><td class="n">108</td><td class="c">}</td><td class="e">Fin de selectionnerCarte().</td></tr>
+<tr class="gr"><td class="n">109</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">110</td><td class="c"><span class="kw">private void</span> <span class="me">deselectionner</span>() {</td><td class="e">Méthode utilitaire appelée pour annuler la sélection courante.</td></tr>
+<tr><td class="n">111</td><td class="c"><span class="kw">if</span> (carteSelectionneeView != <span class="kw">null</span>) {</td><td class="e">Si une carte est sélectionnée (sinon rien à faire).</td></tr>
+<tr><td class="n">112</td><td class="c">carteSelectionneeView.<span class="me">getStyleClass</span>().<span class="me">remove</span>(<span class="st">"carte-selectionnee"</span>);</td><td class="e">Retire la classe CSS du halo doré sur l'ancienne carte.</td></tr>
+<tr><td class="n">113</td><td class="c">carteSelectionneeView = <span class="kw">null</span>;</td><td class="e">Remet à null pour indiquer qu'aucune vue n'est sélectionnée.</td></tr>
+<tr><td class="n">114</td><td class="c">}</td><td class="e">Fin du if.</td></tr>
+<tr><td class="n">115</td><td class="c">carteSelectionnee = <span class="kw">null</span>;</td><td class="e">Remet à null le type de carte sélectionné.</td></tr>
+<tr><td class="n">116</td><td class="c">hoverCase.<span class="me">setVisible</span>(<span class="kw">false</span>);</td><td class="e">Cache le carré de survol (on ne sait plus où placer quoi).</td></tr>
+<tr><td class="n">117</td><td class="c">}</td><td class="e">Fin de deselectionner().</td></tr>
+<tr class="gr"><td class="n">118</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">119</td><td class="c"><span class="cm">// =========</span></td><td class="e">Séparateur.</td></tr>
+<tr><td class="n">120</td><td class="c"><span class="cm">// Indicateur de survol</span></td><td class="e">Commentaire de section.</td></tr>
+<tr><td class="n">121</td><td class="c"><span class="cm">// =========</span></td><td class="e">Séparateur.</td></tr>
+<tr class="gr"><td class="n">122</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">123</td><td class="c"><span class="an">@FXML</span></td><td class="e">Méthode liée à <code>onMouseMoved</code> et <code>onMouseEntered</code> dans le FXML.</td></tr>
+<tr><td class="n">124</td><td class="c"><span class="kw">private void</span> <span class="me">actualiserHover</span>(<span class="ty">MouseEvent</span> event) {</td><td class="e">Appelée à chaque mouvement de souris sur le paneTours. Déplace le hoverCase pour "snapper" à la grille.</td></tr>
+<tr><td class="n">125</td><td class="c"><span class="kw">if</span> (carteSelectionnee == <span class="kw">null</span>) {</td><td class="e">Si aucune carte n'est sélectionnée, on n'a pas besoin d'afficher le hoverCase.</td></tr>
+<tr><td class="n">126</td><td class="c">hoverCase.<span class="me">setVisible</span>(<span class="kw">false</span>);</td><td class="e">Cache le hoverCase.</td></tr>
+<tr><td class="n">127</td><td class="c"><span class="kw">return</span>;</td><td class="e">Sort de la méthode immédiatement.</td></tr>
+<tr><td class="n">128</td><td class="c">}</td><td class="e">Fin du if.</td></tr>
+<tr class="hi"><td class="n">129</td><td class="c"><span class="kw">int</span> col = (<span class="kw">int</span>) (event.<span class="me">getX</span>() / T);</td><td class="e"><strong>Conversion pixel → case :</strong> divise la position X de la souris par 64 et tronque. Ex : souris à x=130 → col 2 (130÷64=2.03 → 2).</td></tr>
+<tr class="hi"><td class="n">130</td><td class="c"><span class="kw">int</span> ligne = (<span class="kw">int</span>) (event.<span class="me">getY</span>() / T);</td><td class="e">Même calcul en vertical : y÷64 tronqué donne la ligne.</td></tr>
+<tr><td class="n">131</td><td class="c">hoverCase.<span class="me">setLayoutX</span>(col * T);</td><td class="e">Positionne le hoverCase au pixel exact du coin supérieur gauche de la case (col×64).</td></tr>
+<tr><td class="n">132</td><td class="c">hoverCase.<span class="me">setLayoutY</span>(ligne * T);</td><td class="e">Même chose en vertical (ligne×64). Le hoverCase "snaps" à la grille.</td></tr>
+<tr><td class="n">133</td><td class="c">hoverCase.<span class="me">setVisible</span>(<span class="kw">true</span>);</td><td class="e">Rend le hoverCase visible maintenant qu'il est bien positionné.</td></tr>
+<tr><td class="n">134</td><td class="c">}</td><td class="e">Fin de actualiserHover().</td></tr>
+<tr class="gr"><td class="n">135</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">136</td><td class="c"><span class="an">@FXML</span></td><td class="e">Lié à <code>onMouseExited</code> dans le FXML.</td></tr>
+<tr><td class="n">137</td><td class="c"><span class="kw">private void</span> <span class="me">cacherHover</span>(<span class="ty">MouseEvent</span> event) {</td><td class="e">Appelée quand la souris sort du paneTours.</td></tr>
+<tr><td class="n">138</td><td class="c">hoverCase.<span class="me">setVisible</span>(<span class="kw">false</span>);</td><td class="e">Cache le hoverCase pour qu'il ne reste pas affiché quand la souris quitte le terrain.</td></tr>
+<tr><td class="n">139</td><td class="c">}</td><td class="e">Fin de cacherHover().</td></tr>
+<tr class="gr"><td class="n">140</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">141-143</td><td class="c"><span class="cm">// =========</span><br><span class="cm">// Clic sur le terrain</span><br><span class="cm">// =========</span></td><td class="e">Séparateurs et commentaire de section.</td></tr>
+<tr class="gr"><td class="n">144</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">145</td><td class="c"><span class="an">@FXML</span></td><td class="e">Lié à <code>onMouseClicked="#placerTour"</code> sur le paneTours dans le FXML.</td></tr>
+<tr class="hi"><td class="n">146</td><td class="c"><span class="kw">private void</span> <span class="me">placerTour</span>(<span class="ty">MouseEvent</span> event) {</td><td class="e"><strong>Gestionnaire principal du clic.</strong> Appelé à chaque clic sur le terrain. Décide si on pose une tour ou applique un pouvoir.</td></tr>
+<tr><td class="n">147</td><td class="c"><span class="kw">if</span> (event.<span class="me">getButton</span>() != <span class="ty">MouseButton</span>.PRIMARY) <span class="kw">return</span>;</td><td class="e">Ignore les clics autre que clic gauche (PRIMARY). Clic droit ou molette = ignoré.</td></tr>
+<tr><td class="n">148</td><td class="c"><span class="kw">if</span> (carteSelectionnee == <span class="kw">null</span>) <span class="kw">return</span>;</td><td class="e">Si aucune carte n'est sélectionnée, le clic ne fait rien.</td></tr>
+<tr class="gr"><td class="n">149</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">150</td><td class="c"><span class="kw">int</span> col = (<span class="kw">int</span>) (event.<span class="me">getX</span>() / T);</td><td class="e">Convertit le X de la souris en numéro de colonne. Ex : clic à x=200 → col 3 (200÷64=3.12 → 3).</td></tr>
+<tr class="hi"><td class="n">151</td><td class="c"><span class="kw">int</span> ligne = (<span class="kw">int</span>) (event.<span class="me">getY</span>() / T);</td><td class="e">Convertit le Y de la souris en numéro de ligne.</td></tr>
+<tr class="gr"><td class="n">152</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">153</td><td class="c"><span class="kw">if</span> (ligne &lt; <span class="nu">0</span> || ligne &gt;= modele.<span class="me">getNbLignes</span>()) <span class="kw">return</span>;</td><td class="e">Garde contre les clics en dehors de la grille (vérification sur les lignes).</td></tr>
+<tr><td class="n">154</td><td class="c"><span class="kw">if</span> (col &lt; <span class="nu">0</span> || col &gt;= modele.<span class="me">getNbColonnes</span>()) <span class="kw">return</span>;</td><td class="e">Garde contre les clics hors grille (vérification sur les colonnes).</td></tr>
+<tr class="gr"><td class="n">155</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">156</td><td class="c"><span class="ty">TypeCarte</span> type = carteSelectionnee;</td><td class="e">Copie locale du type pour l'utiliser après <code>deselectionner()</code> qui remet carteSelectionnee à null.</td></tr>
+<tr><td class="n">157</td><td class="c"><span class="kw">boolean</span> succes;</td><td class="e">Résultat du placement : true si réussi, false sinon (case non constructible, pas de tour…).</td></tr>
+<tr class="gr"><td class="n">158</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">159</td><td class="c"><span class="kw">if</span> (type.<span class="me">estPouvoir</span>()) {</td><td class="e">Si la carte est un pouvoir (BloodBag, Brimstone, SoyMilk) → essaie d'appliquer le pouvoir à une tour existante.</td></tr>
+<tr><td class="n">160</td><td class="c">succes = <span class="me">tenterAppliquerPouvoir</span>(col, ligne, type);</td><td class="e">Cherche une tour sur cette case et lui applique le pouvoir. Retourne false si aucune tour sur la case.</td></tr>
+<tr><td class="n">161</td><td class="c">} <span class="kw">else</span> {</td><td class="e">Sinon : c'est une carte tour → essaie de poser une nouvelle tour.</td></tr>
+<tr><td class="n">162</td><td class="c">succes = <span class="me">tenterPoserTour</span>(col, ligne);</td><td class="e">Vérifie constructibilité, charge tour.fxml, configure le contrôleur. Retourne false si case non constructible ou déjà occupée.</td></tr>
+<tr><td class="n">163</td><td class="c">}</td><td class="e">Fin du if/else.</td></tr>
+<tr class="gr"><td class="n">164</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">165</td><td class="c"><span class="cm">// La carte n'est consommée que si le placement a réussi</span></td><td class="e">Commentaire important : règle de jeu.</td></tr>
+<tr class="hi"><td class="n">166</td><td class="c"><span class="kw">if</span> (succes) {</td><td class="e"><strong>La carte n'est consommée que si le placement a réussi.</strong> Si on clique sur un mur ou une case occupée, on garde la carte.</td></tr>
+<tr><td class="n">167</td><td class="c"><span class="me">deselectionner</span>();</td><td class="e">Retire le halo CSS et remet à null la sélection.</td></tr>
+<tr><td class="n">168</td><td class="c">modeleDeck.<span class="me">utiliserCarte</span>(type);</td><td class="e">Retire la première occurrence de ce type dans la liste du ModeleDeck.</td></tr>
+<tr><td class="n">169</td><td class="c">vueDeck.<span class="me">masquerCarte</span>(type);</td><td class="e">Cache le slot correspondant dans le HBox (setVisible=false, l'espace est conservé).</td></tr>
+<tr><td class="n">170</td><td class="c">}</td><td class="e">Fin du if(succes).</td></tr>
+<tr><td class="n">171</td><td class="c">}</td><td class="e">Fin de placerTour().</td></tr>
+<tr class="gr"><td class="n">172</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">173-176</td><td class="c"><span class="cm">// =========</span><br><span class="cm">// Spawn d'un ennemi</span><br><span class="cm">// =========</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">177</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">178</td><td class="c"><span class="kw">private void</span> <span class="me">spawnerEnnemi</span>() {</td><td class="e">Crée et lance un ennemi. Peut être appelée plusieurs fois pour en spawner plusieurs.</td></tr>
+<tr><td class="n">179</td><td class="c"><span class="kw">double</span> departX = modele.<span class="me">getColonneEntree</span>() * T;</td><td class="e">Position X de départ en pixels = colonne d'entrée (0) × 64 = 0px (bord gauche).</td></tr>
+<tr><td class="n">180</td><td class="c"><span class="kw">double</span> departY = modele.<span class="me">getLigneEntree</span>() * T;</td><td class="e">Position Y de départ = ligne aléatoire de l'entrée × 64 pixels.</td></tr>
+<tr class="gr"><td class="n">181</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">182</td><td class="c"><span class="ty">ModeleEnnemi</span> modEnnemi = <span class="kw">new</span> <span class="ty">ModeleEnnemi</span>(departX, departY, <span class="nu">48</span>, <span class="st">"Fatty"</span>);</td><td class="e">Crée le modèle ennemi : position de départ, vitesse 48px/s, type "Fatty" (nom du GIF).</td></tr>
+<tr><td class="n">183</td><td class="c"><span class="ty">VueEnnemi</span> vueEnnemi = <span class="kw">new</span> <span class="ty">VueEnnemi</span>(modEnnemi, paneEnnemis, modele.<span class="me">getDossierSprites</span>());</td><td class="e">Crée la vue : charge le GIF, crée une ImageView, l'ajoute à paneEnnemis. L'ennemi apparaît à l'écran.</td></tr>
+<tr class="gr"><td class="n">184</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">185</td><td class="c"><span class="ty">ControllerEnnemis</span> ctrl = <span class="kw">new</span> <span class="ty">ControllerEnnemis</span>(</td><td class="e">Crée le contrôleur de l'ennemi sur plusieurs lignes pour la lisibilité.</td></tr>
+<tr class="hi"><td class="n">186</td><td class="c">modEnnemi, vueEnnemi, modele,</td><td class="e">Passe le modèle, la vue et le terrain (pour calculer le chemin BFS).</td></tr>
+<tr class="hi"><td class="n">187</td><td class="c">() -&gt; ennemisActifs.<span class="me">remove</span>(modEnnemi)</td><td class="e"><strong>Lambda = callback onMort.</strong> Quand l'ennemi meurt, cette fonction sera appelée pour le retirer de la map. <code>() -&gt;</code> = aucun paramètre, <code>ennemisActifs.remove(...)</code> = action.</td></tr>
+<tr><td class="n">188</td><td class="c">);</td><td class="e">Fin du constructeur.</td></tr>
+<tr class="gr"><td class="n">189</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">190</td><td class="c">ennemisActifs.<span class="me">put</span>(modEnnemi, ctrl);</td><td class="e">Enregistre l'ennemi dans la map des actifs (modèle → contrôleur).</td></tr>
+<tr><td class="n">191</td><td class="c">modeleEnnemiActuel = modEnnemi;</td><td class="e">Mémorise la référence pour que les tours placées puissent cibler cet ennemi.</td></tr>
+<tr><td class="n">192</td><td class="c">ctrl.<span class="me">demarrer</span>();</td><td class="e">Lance l'AnimationTimer qui déplacera l'ennemi frame par frame.</td></tr>
+<tr><td class="n">193</td><td class="c">}</td><td class="e">Fin de spawnerEnnemi().</td></tr>
+<tr class="gr"><td class="n">194</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">195</td><td class="c"><span class="cm">// ── Pose d'une tour ───</span></td><td class="e">Commentaire.</td></tr>
+<tr class="gr"><td class="n">196</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">197</td><td class="c"><span class="kw">private boolean</span> <span class="me">tenterPoserTour</span>(<span class="kw">int</span> col, <span class="kw">int</span> ligne) {</td><td class="e">Essaie de poser une tour. Retourne true si réussi, false sinon.</td></tr>
+<tr><td class="n">198</td><td class="c"><span class="kw">if</span> (!<span class="me">estConstructible</span>(ligne, col)) <span class="kw">return false</span>;</td><td class="e">Vérifie que la case est un sol simple sans obstacle. Sinon on ne peut pas construire ici.</td></tr>
+<tr><td class="n">199</td><td class="c"><span class="ty">String</span> cle = ligne + <span class="st">","</span> + col;</td><td class="e">Fabrique la clé unique pour cette case (ex: "3,5").</td></tr>
+<tr><td class="n">200</td><td class="c"><span class="kw">if</span> (toursControlleurs.<span class="me">containsKey</span>(cle)) <span class="kw">return false</span>;</td><td class="e">Empêche de poser deux tours sur la même case.</td></tr>
+<tr class="gr"><td class="n">201</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">202</td><td class="c"><span class="kw">try</span> {</td><td class="e">Bloc try car le chargement de FXML peut lever une IOException.</td></tr>
+<tr class="hi"><td class="n">203</td><td class="c"><span class="ty">FXMLLoader</span> loader = <span class="kw">new</span> <span class="ty">FXMLLoader</span>(getClass().<span class="me">getResource</span>(<span class="st">"/...tour.fxml"</span>));</td><td class="e"><strong>Prépare le chargement de tour.fxml.</strong> <code>getClass().getResource()</code> cherche le fichier dans le classpath.</td></tr>
+<tr class="hi"><td class="n">204</td><td class="c"><span class="ty">Group</span> tourNode = loader.<span class="me">load</span>();</td><td class="e"><strong>Charge le FXML :</strong> crée le Group (portée + sprite) ET instancie ControllerTour, appelle son initialize().</td></tr>
+<tr class="hi"><td class="n">205</td><td class="c"><span class="ty">ControllerTour</span> ct = loader.<span class="me">getController</span>();</td><td class="e"><strong>Récupère le contrôleur</strong> créé automatiquement par le FXMLLoader. Permet d'appeler configure() et appliquerPouvoir().</td></tr>
+<tr class="gr"><td class="n">206</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">207</td><td class="c">tourNode.<span class="me">setLayoutX</span>(col * T);</td><td class="e">Positionne la tour horizontalement en pixels dans paneTours.</td></tr>
+<tr><td class="n">208</td><td class="c">tourNode.<span class="me">setLayoutY</span>(ligne * T);</td><td class="e">Positionne la tour verticalement en pixels.</td></tr>
+<tr><td class="n">209</td><td class="c">paneTours.<span class="me">getChildren</span>().<span class="me">add</span>(tourNode);</td><td class="e">Ajoute le visuel de la tour au Pane → la tour apparaît à l'écran.</td></tr>
+<tr class="gr"><td class="n">210</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">211</td><td class="c">ct.<span class="me">configurer</span>(col*T+T/<span class="nu">2.0</span>, ligne*T+T/<span class="nu">2.0</span>, <span class="nu">3.0</span>*T, modeleEnnemiActuel);</td><td class="e"><strong>Configure le contrôleur :</strong> centre exact de la case (col×64+32, ligne×64+32), portée (3×64=192px), ennemi à cibler.</td></tr>
+<tr><td class="n">212</td><td class="c">toursControlleurs.<span class="me">put</span>(cle, ct);</td><td class="e">Enregistre la tour dans la map pour retrouver son contrôleur par clé "ligne,col".</td></tr>
+<tr><td class="n">213</td><td class="c"><span class="kw">return true</span>;</td><td class="e">Placement réussi.</td></tr>
+<tr class="gr"><td class="n">214</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">215</td><td class="c">} <span class="kw">catch</span> (<span class="ty">IOException</span> e) {</td><td class="e">Si tour.fxml est introuvable ou mal formé.</td></tr>
+<tr><td class="n">216</td><td class="c">e.<span class="me">printStackTrace</span>();</td><td class="e">Affiche la trace d'erreur dans la console pour déboguer.</td></tr>
+<tr><td class="n">217</td><td class="c"><span class="kw">return false</span>;</td><td class="e">Échec du placement.</td></tr>
+<tr><td class="n">218</td><td class="c">}</td><td class="e">Fin du catch.</td></tr>
+<tr><td class="n">219</td><td class="c">}</td><td class="e">Fin de tenterPoserTour().</td></tr>
+<tr class="gr"><td class="n">220</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">221</td><td class="c"><span class="cm">// ── Application d'un pouvoir ───</span></td><td class="e">Commentaire.</td></tr>
+<tr class="gr"><td class="n">222</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">223</td><td class="c"><span class="kw">private boolean</span> <span class="me">tenterAppliquerPouvoir</span>(<span class="kw">int</span> col, <span class="kw">int</span> ligne, <span class="ty">TypeCarte</span> pouvoir) {</td><td class="e">Essaie d'appliquer un pouvoir à la tour sur cette case.</td></tr>
+<tr><td class="n">224</td><td class="c"><span class="ty">String</span> cle = ligne + <span class="st">","</span> + col;</td><td class="e">Calcule la clé de la case cliquée.</td></tr>
+<tr><td class="n">225</td><td class="c"><span class="ty">ControllerTour</span> ct = toursControlleurs.<span class="me">get</span>(cle);</td><td class="e">Cherche s'il y a une tour sur cette case dans la map.</td></tr>
+<tr><td class="n">226</td><td class="c"><span class="kw">if</span> (ct == <span class="kw">null</span>) <span class="kw">return false</span>;</td><td class="e">Pas de tour sur cette case → échec.</td></tr>
+<tr class="gr"><td class="n">227</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">228</td><td class="c">ct.<span class="me">appliquerPouvoir</span>(pouvoir);</td><td class="e"><strong>Applique le pouvoir :</strong> met à jour les dégâts et la vitesse, recharge les sprites, rejoue l'animation d'apparition.</td></tr>
+<tr><td class="n">229</td><td class="c"><span class="kw">return true</span>;</td><td class="e">Succès.</td></tr>
+<tr><td class="n">230</td><td class="c">}</td><td class="e">Fin de tenterAppliquerPouvoir().</td></tr>
+<tr class="gr"><td class="n">231</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">232</td><td class="c"><span class="cm">// ── Vérification de constructibilité ───</span></td><td class="e">Commentaire.</td></tr>
+<tr class="gr"><td class="n">233</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">234</td><td class="c"><span class="kw">private boolean</span> <span class="me">estConstructible</span>(<span class="kw">int</span> ligne, <span class="kw">int</span> colonne) {</td><td class="e">Deux conditions cumulatives pour autoriser la construction sur une case.</td></tr>
+<tr class="hi"><td class="n">235</td><td class="c"><span class="kw">if</span> (!modele.<span class="me">getTuile</span>(ligne, colonne).<span class="me">isSolSimple</span>()) <span class="kw">return false</span>;</td><td class="e"><strong>Condition 1 :</strong> la tuile doit être SOL_SIMPLE. Un mur bord/coin ne peut pas accueillir une tour.</td></tr>
+<tr class="hi"><td class="n">236</td><td class="c"><span class="kw">if</span> (modele.<span class="me">getObstaclesGrille</span>()[ligne][colonne] != <span class="kw">null</span>) <span class="kw">return false</span>;</td><td class="e"><strong>Condition 2 :</strong> la case ne doit pas avoir d'obstacle (baril ou caillou). <code>!= null</code> signifie qu'il y a un obstacle.</td></tr>
+<tr><td class="n">237</td><td class="c"><span class="kw">return true</span>;</td><td class="e">Les deux conditions sont remplies : on peut construire ici.</td></tr>
+<tr><td class="n">238</td><td class="c">}</td><td class="e">Fin de estConstructible().</td></tr>
+<tr><td class="n">239</td><td class="c">}</td><td class="e">Fin de la classe GameController.</td></tr>
+</tbody></table>
+</div>
+<!-- END GAMECONTROLLER -->
+
+<!-- PLACEHOLDER -->
+<!-- CONTROLLERENNEMIS -->
+<div class="tab" id="ce">
+<div class="ch"><h2>ControllerEnnemis.java</h2><div class="pkg">com.example.sae2.controller</div><span class="bd bc">Contrôleur</span>
+<div class="role">Déplace un ennemi frame par frame le long du chemin calculé par BFS. Détecte la mort et appelle le callback onMort.</div></div>
+<table><thead><tr><th>Ligne</th><th>Code</th><th>Explication</th></tr></thead><tbody>
+<tr><td class="n">1</td><td class="c"><span class="kw">package</span> com.example.sae2.controller;</td><td class="e">Package contrôleur.</td></tr>
+<tr class="gr"><td class="n">2</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">3</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.carte.ModeleTerrain;</td><td class="e">Pour accéder à TAILLE_TUILE, aux dimensions de la grille et aux coordonnées entrée/sortie.</td></tr>
+<tr><td class="n">4</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.ennemis.BFS;</td><td class="e">L'algorithme de recherche de chemin.</td></tr>
+<tr><td class="n">5</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.ennemis.ModeleEnnemi;</td><td class="e">Le modèle de l'ennemi à déplacer.</td></tr>
+<tr><td class="n">6</td><td class="c"><span class="kw">import</span> com.example.sae2.vue.ennemis.VueEnnemi;</td><td class="e">La vue de l'ennemi pour actualiser la position et supprimer le sprite.</td></tr>
+<tr><td class="n">7</td><td class="c"><span class="kw">import</span> javafx.animation.AnimationTimer;</td><td class="e">La boucle de jeu : <code>handle()</code> est appelée à ~60fps.</td></tr>
+<tr class="gr"><td class="n">8</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">9</td><td class="c"><span class="kw">import</span> java.util.List;</td><td class="e">Le chemin renvoyé par BFS est une <code>List&lt;int[]&gt;</code>.</td></tr>
+<tr class="gr"><td class="n">10</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">11</td><td class="c"><span class="kw">public class</span> <span class="ty">ControllerEnnemis</span> {</td><td class="e">Déclaration de la classe.</td></tr>
+<tr class="gr"><td class="n">12</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">13</td><td class="c"><span class="kw">private static final int</span> T = <span class="ty">ModeleTerrain</span>.TAILLE_TUILE;</td><td class="e">64px. Référence à la constante partagée pour calculer les positions pixel.</td></tr>
+<tr><td class="n">14</td><td class="c"><span class="kw">private static final int</span> TAILLE_ENNEMI = <span class="nu">64</span>;</td><td class="e">Le sprite de l'ennemi fait 64×64px.</td></tr>
+<tr><td class="n">15</td><td class="c"><span class="kw">private static final int</span> OFFSET = (T - TAILLE_ENNEMI) / <span class="nu">2</span>;</td><td class="e">(64-64)/2 = 0. Prévu pour centrer le sprite si sa taille diffère de la tuile.</td></tr>
+<tr class="gr"><td class="n">16</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">17</td><td class="c"><span class="kw">private final</span> <span class="ty">ModeleEnnemi</span> modele;</td><td class="e">Référence au modèle pour lire/modifier la position et les PV.</td></tr>
+<tr><td class="n">18</td><td class="c"><span class="kw">private final</span> <span class="ty">VueEnnemi</span> vue;</td><td class="e">Référence à la vue pour l'actualiser et la supprimer.</td></tr>
+<tr><td class="n">19</td><td class="c"><span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="kw">int</span>[]&gt; chemin;</td><td class="e">Liste des cases [ligne, col] du chemin calculé par BFS. Stockée une fois pour toutes.</td></tr>
+<tr class="hi"><td class="n">20</td><td class="c"><span class="kw">private final</span> <span class="ty">Runnable</span> onMort;</td><td class="e"><strong>Callback de mort.</strong> Un <code>Runnable</code> est une interface fonctionnelle avec une méthode <code>run()</code> sans paramètre. Fourni par GameController pour retirer l'ennemi de la map.</td></tr>
+<tr class="gr"><td class="n">21</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">22</td><td class="c"><span class="kw">private int</span> indexChemin = <span class="nu">0</span>;</td><td class="e">Index dans la liste <code>chemin</code> indiquant quelle case l'ennemi vise actuellement. Commence à 0 (case de départ).</td></tr>
+<tr><td class="n">23</td><td class="c"><span class="kw">private long</span> tempsPrecedent = -<span class="nu">1</span>;</td><td class="e">Timestamp de la frame précédente (nanosecondes). -1 = non initialisé (première frame).</td></tr>
+<tr class="gr"><td class="n">24</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">25</td><td class="c"><span class="kw">public</span> <span class="ty">ControllerEnnemis</span>(<span class="ty">ModeleEnnemi</span> modele, <span class="ty">VueEnnemi</span> vue,</td><td class="e">Constructeur sur deux lignes pour la lisibilité.</td></tr>
+<tr><td class="n">26</td><td class="c"><span class="ty">ModeleTerrain</span> terrain, <span class="ty">Runnable</span> onMort) {</td><td class="e">Le terrain sert à calculer le chemin. <code>onMort</code> sera exécuté à la mort.</td></tr>
+<tr><td class="n">27</td><td class="c"><span class="kw">this</span>.modele = modele;</td><td class="e">Stocke la référence au modèle.</td></tr>
+<tr><td class="n">28</td><td class="c"><span class="kw">this</span>.vue = vue;</td><td class="e">Stocke la référence à la vue.</td></tr>
+<tr><td class="n">29</td><td class="c"><span class="kw">this</span>.onMort = onMort;</td><td class="e">Stocke le callback de mort.</td></tr>
+<tr class="gr"><td class="n">30</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">31</td><td class="c"><span class="kw">boolean</span>[][] grilleBloquee = <span class="me">construireGrilleBloquee</span>(terrain);</td><td class="e">Construit le tableau de cases bloquées (murs + obstacles, sauf entrée/sortie).</td></tr>
+<tr class="gr"><td class="n">32</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">33</td><td class="c"><span class="kw">this</span>.chemin = <span class="ty">BFS</span>.<span class="me">calculerChemin</span>(</td><td class="e"><strong>Calcul BFS du chemin.</strong> Appelé une seule fois au constructeur. La liste résultante est parcourue par l'AnimationTimer.</td></tr>
+<tr><td class="n">34</td><td class="c">terrain.<span class="me">getLigneEntree</span>(), terrain.<span class="me">getColonneEntree</span>(),</td><td class="e">Point de départ : case d'entrée (colonne 0, ligne aléatoire).</td></tr>
+<tr><td class="n">35</td><td class="c">terrain.<span class="me">getLigneSortie</span>(), terrain.<span class="me">getColonneSortie</span>(),</td><td class="e">Point d'arrivée : case de sortie (dernière colonne, ligne aléatoire).</td></tr>
+<tr><td class="n">36</td><td class="c">grilleBloquee</td><td class="e">La grille indiquant quelles cases sont infranchissables.</td></tr>
+<tr><td class="n">37</td><td class="c">);</td><td class="e">Fin de l'appel BFS.calculerChemin().</td></tr>
+<tr class="gr"><td class="n">38</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">39</td><td class="c"><span class="kw">if</span> (chemin.<span class="me">isEmpty</span>()) {</td><td class="e">Si le BFS n'a pas trouvé de chemin (terrain entièrement bloqué).</td></tr>
+<tr><td class="n">40</td><td class="c">System.err.<span class="me">println</span>(<span class="st">"[ControllerEnnemis] Aucun chemin trouvé !"</span>);</td><td class="e">Affiche un message d'erreur en rouge dans la console (System.err vs System.out).</td></tr>
+<tr><td class="n">41</td><td class="c">}</td><td class="e">Fin du if.</td></tr>
+<tr><td class="n">42</td><td class="c">}</td><td class="e">Fin du constructeur.</td></tr>
+<tr class="gr"><td class="n">43</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">44</td><td class="c"><span class="kw">private boolean</span>[][] <span class="me">construireGrilleBloquee</span>(<span class="ty">ModeleTerrain</span> terrain) {</td><td class="e">Construit le tableau boolean indiquant les cases que BFS ne peut pas traverser.</td></tr>
+<tr><td class="n">45</td><td class="c"><span class="kw">int</span> rows = terrain.<span class="me">getNbLignes</span>();</td><td class="e">Nombre de lignes (12).</td></tr>
+<tr><td class="n">46</td><td class="c"><span class="kw">int</span> cols = terrain.<span class="me">getNbColonnes</span>();</td><td class="e">Nombre de colonnes (12).</td></tr>
+<tr><td class="n">47</td><td class="c"><span class="kw">boolean</span>[][] bloquee = <span class="kw">new boolean</span>[rows][cols];</td><td class="e">Crée le tableau. Par défaut tout est false (= pas bloqué).</td></tr>
+<tr class="gr"><td class="n">48</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">49</td><td class="c"><span class="kw">for</span> (<span class="kw">int</span> l = <span class="nu">0</span>; l &lt; rows; l++) {</td><td class="e">Boucle sur toutes les lignes.</td></tr>
+<tr><td class="n">50</td><td class="c"><span class="kw">for</span> (<span class="kw">int</span> c = <span class="nu">0</span>; c &lt; cols; c++) {</td><td class="e">Boucle sur toutes les colonnes.</td></tr>
+<tr><td class="n">51</td><td class="c"><span class="kw">boolean</span> estMur = !terrain.<span class="me">getTuile</span>(l, c).<span class="me">isSolSimple</span>();</td><td class="e">La case est un mur si elle n'est pas SOL_SIMPLE (mur bord, mur coin).</td></tr>
+<tr><td class="n">52</td><td class="c"><span class="kw">boolean</span> estObstacle = terrain.<span class="me">getObstaclesGrille</span>()[l][c] != <span class="kw">null</span>;</td><td class="e">La case a un obstacle (baril ou caillou) si la grille obstacles n'est pas null ici.</td></tr>
+<tr><td class="n">53</td><td class="c"><span class="kw">boolean</span> estEntree = l == terrain.<span class="me">getLigneEntree</span>() &amp;&amp; c == terrain.<span class="me">getColonneEntree</span>();</td><td class="e">Est-ce la case d'entrée ? Elle doit rester franchissable même si c'est un mur.</td></tr>
+<tr><td class="n">54</td><td class="c"><span class="kw">boolean</span> estSortie = l == terrain.<span class="me">getLigneSortie</span>() &amp;&amp; c == terrain.<span class="me">getColonneSortie</span>();</td><td class="e">Est-ce la case de sortie ? Même raison.</td></tr>
+<tr class="gr"><td class="n">55</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">56</td><td class="c">bloquee[l][c] = (estMur || estObstacle) &amp;&amp; !estEntree &amp;&amp; !estSortie;</td><td class="e"><strong>Logique :</strong> une case est bloquée si c'est un mur OU obstacle, ET ce n'est pas l'entrée ET pas la sortie. Les portes restent toujours ouvertes.</td></tr>
+<tr><td class="n">57</td><td class="c">}</td><td class="e">Fin boucle colonnes.</td></tr>
+<tr><td class="n">58</td><td class="c">}</td><td class="e">Fin boucle lignes.</td></tr>
+<tr><td class="n">59</td><td class="c"><span class="kw">return</span> bloquee;</td><td class="e">Retourne la grille complète.</td></tr>
+<tr><td class="n">60</td><td class="c">}</td><td class="e">Fin de construireGrilleBloquee().</td></tr>
+<tr class="gr"><td class="n">61</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">62</td><td class="c"><span class="kw">private static double</span> <span class="me">caseEnPixelX</span>(<span class="kw">int</span> colonne) { <span class="kw">return</span> colonne * T + OFFSET; }</td><td class="e">Convertit un numéro de colonne en coordonnée X pixel. OFFSET=0 ici donc colonne×64.</td></tr>
+<tr><td class="n">63</td><td class="c"><span class="kw">private static double</span> <span class="me">caseEnPixelY</span>(<span class="kw">int</span> ligne) { <span class="kw">return</span> ligne * T + OFFSET; }</td><td class="e">Même chose pour la coordonnée Y.</td></tr>
+<tr class="gr"><td class="n">64</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">65</td><td class="c"><span class="kw">public void</span> <span class="me">demarrer</span>() {</td><td class="e"><strong>Lance la boucle de jeu de l'ennemi.</strong> Crée et démarre un AnimationTimer anonyme.</td></tr>
+<tr><td class="n">66</td><td class="c"><span class="kw">new</span> <span class="ty">AnimationTimer</span>() {</td><td class="e">Classe anonyme héritant d'AnimationTimer. <code>handle()</code> sera appelée ~60 fois par seconde.</td></tr>
+<tr><td class="n">67</td><td class="c"><span class="an">@Override</span></td><td class="e">Indique qu'on redéfinit la méthode handle() de AnimationTimer.</td></tr>
+<tr><td class="n">68</td><td class="c"><span class="kw">public void</span> <span class="me">handle</span>(<span class="kw">long</span> now) {</td><td class="e"><code>now</code> = timestamp courant en nanosecondes (depuis le démarrage JVM).</td></tr>
+<tr class="hi"><td class="n">69</td><td class="c"><span class="kw">if</span> (tempsPrecedent &lt; <span class="nu">0</span>) { tempsPrecedent = now; <span class="kw">return</span>; }</td><td class="e"><strong>Première frame :</strong> initialise le temps de référence et sort immédiatement. Sans ça delta serait un nombre immense (milliards de ns).</td></tr>
+<tr class="gr"><td class="n">70</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">71</td><td class="c"><span class="kw">double</span> delta = (now - tempsPrecedent) / <span class="nu">1_000_000_000.0</span>;</td><td class="e"><strong>Delta time en secondes.</strong> now-tempsPrecedent = nanosecondes écoulées. ÷10⁹ = secondes. Ex: ~0.016s à 60fps. Permet un mouvement indépendant du framerate.</td></tr>
+<tr><td class="n">72</td><td class="c">tempsPrecedent = now;</td><td class="e">Met à jour le timestamp pour la prochaine frame.</td></tr>
+<tr class="gr"><td class="n">73</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">74</td><td class="c"><span class="cm">// ── Mort ────</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">75</td><td class="c"><span class="kw">if</span> (modele.<span class="me">estMort</span>()) {</td><td class="e">Vérifie si l'ennemi a 0 PV.</td></tr>
+<tr class="hi"><td class="n">76</td><td class="c">vue.<span class="me">supprimer</span>();</td><td class="e">Retire l'ImageView du paneEnnemis → l'ennemi disparaît visuellement.</td></tr>
+<tr class="hi"><td class="n">77</td><td class="c">onMort.<span class="me">run</span>();</td><td class="e">Exécute le callback : <code>ennemisActifs.remove(modEnnemi)</code> dans GameController.</td></tr>
+<tr class="hi"><td class="n">78</td><td class="c"><span class="me">stop</span>();</td><td class="e">Arrête définitivement cet AnimationTimer. Plus aucun appel à handle().</td></tr>
+<tr><td class="n">79</td><td class="c"><span class="kw">return</span>;</td><td class="e">Sort du handle() (même si stop() a été appelé, la frame courante continue sans return).</td></tr>
+<tr><td class="n">80</td><td class="c">}</td><td class="e">Fin du if mort.</td></tr>
+<tr class="gr"><td class="n">81</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">82</td><td class="c"><span class="cm">// ── Arrivée en sortie ────</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">83</td><td class="c"><span class="kw">if</span> (chemin.<span class="me">isEmpty</span>() || indexChemin &gt;= chemin.<span class="me">size</span>() - <span class="nu">1</span>) {</td><td class="e">Soit il n'y avait pas de chemin, soit l'ennemi a atteint la dernière case (la sortie).</td></tr>
+<tr><td class="n">84</td><td class="c">vue.<span class="me">actualiser</span>();</td><td class="e">Met à jour la position une dernière fois.</td></tr>
+<tr><td class="n">85</td><td class="c"><span class="me">stop</span>();</td><td class="e">Arrête l'animation (l'ennemi est sorti ou bloqué).</td></tr>
+<tr><td class="n">86</td><td class="c"><span class="kw">return</span>;</td><td class="e">Sort du handle().</td></tr>
+<tr><td class="n">87</td><td class="c">}</td><td class="e">Fin du if sortie.</td></tr>
+<tr class="gr"><td class="n">88</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">89</td><td class="c"><span class="cm">// ── Déplacement ────</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">90</td><td class="c"><span class="kw">int</span>[] prochaine = chemin.<span class="me">get</span>(indexChemin + <span class="nu">1</span>);</td><td class="e">Récupère la prochaine case dans le chemin (pas la courante mais la suivante).</td></tr>
+<tr><td class="n">91</td><td class="c"><span class="kw">double</span> cibleX = <span class="me">caseEnPixelX</span>(prochaine[<span class="nu">1</span>]);</td><td class="e">Convertit la colonne de la prochaine case en pixels X. prochaine[1] = indice de colonne.</td></tr>
+<tr><td class="n">92</td><td class="c"><span class="kw">double</span> cibleY = <span class="me">caseEnPixelY</span>(prochaine[<span class="nu">0</span>]);</td><td class="e">Convertit la ligne en pixels Y. prochaine[0] = indice de ligne.</td></tr>
+<tr class="gr"><td class="n">93</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">94</td><td class="c"><span class="kw">if</span> (modele.<span class="me">deplacerVers</span>(cibleX, cibleY, delta)) {</td><td class="e"><strong>Demande au modèle de se déplacer.</strong> Retourne true si la case cible est atteinte ce frame.</td></tr>
+<tr><td class="n">95</td><td class="c">indexChemin++;</td><td class="e">La case courante est atteinte : passe à la case suivante du chemin.</td></tr>
+<tr><td class="n">96</td><td class="c">}</td><td class="e">Fin du if.</td></tr>
+<tr class="gr"><td class="n">97</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">98</td><td class="c">vue.<span class="me">actualiser</span>();</td><td class="e">Copie la position du modèle dans l'ImageView. Appelé à chaque frame pour un mouvement fluide.</td></tr>
+<tr><td class="n">99</td><td class="c">}</td><td class="e">Fin de handle().</td></tr>
+<tr><td class="n">100</td><td class="c">}.<span class="me">start</span>();</td><td class="e">Crée l'AnimationTimer anonyme et le démarre immédiatement.</td></tr>
+<tr><td class="n">101</td><td class="c">}</td><td class="e">Fin de demarrer().</td></tr>
+<tr><td class="n">102</td><td class="c">}</td><td class="e">Fin de la classe ControllerEnnemis.</td></tr>
+</tbody></table>
+</div>
+<!-- END CONTROLLERENNEMIS -->
+
+<!-- CONTROLLERTOUR -->
+<div class="tab" id="ct">
+<div class="ch"><h2>ControllerTour.java</h2><div class="pkg">com.example.sae2.controller</div><span class="bd bc">Contrôleur</span>
+<div class="role">Gère toute la vie d'une tour : animation d'apparition, cycle idle/blink, détection de l'ennemi, rotation, tir de projectiles, et application de pouvoirs.</div></div>
+<table><thead><tr><th>Ligne</th><th>Code</th><th>Explication</th></tr></thead><tbody>
+<tr><td class="n">1</td><td class="c"><span class="kw">package</span> com.example.sae2.controller;</td><td class="e">Package contrôleur.</td></tr>
+<tr><td class="n">3</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.deck.TypeCarte;</td><td class="e">Pour connaître les dégâts et la vitesse de projectile d'un type de carte.</td></tr>
+<tr><td class="n">4</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.ennemis.ModeleEnnemi;</td><td class="e">Référence à l'ennemi pour calculer la distance, la direction et infliger les dégâts.</td></tr>
+<tr><td class="n">5</td><td class="c"><span class="kw">import</span> com.example.sae2.modele.tours.ModeleProjectile;</td><td class="e">Le modèle du projectile (position, déplacement, impact).</td></tr>
+<tr><td class="n">6</td><td class="c"><span class="kw">import</span> javafx.animation.AnimationTimer;</td><td class="e">Boucle pour le tracking et les projectiles.</td></tr>
+<tr><td class="n">7</td><td class="c"><span class="kw">import</span> javafx.animation.KeyFrame;</td><td class="e">Une étape d'une Timeline (ex: après 150ms → changer sprite).</td></tr>
+<tr><td class="n">8</td><td class="c"><span class="kw">import</span> javafx.animation.Timeline;</td><td class="e">Animation à pas discrets (apparition, blink) par opposition à l'AnimationTimer continu.</td></tr>
+<tr><td class="n">9</td><td class="c"><span class="kw">import</span> javafx.fxml.FXML;</td><td class="e">Annotation pour injection des nœuds depuis tour.fxml.</td></tr>
+<tr><td class="n">10</td><td class="c"><span class="kw">import</span> javafx.scene.Group;</td><td class="e">Le nœud racine de tour.fxml est un Group.</td></tr>
+<tr><td class="n">11</td><td class="c"><span class="kw">import</span> javafx.scene.image.Image;</td><td class="e">Pour charger les images PNG des sprites.</td></tr>
+<tr><td class="n">12</td><td class="c"><span class="kw">import</span> javafx.scene.image.ImageView;</td><td class="e">Pour afficher les sprites et les projectiles.</td></tr>
+<tr><td class="n">13</td><td class="c"><span class="kw">import</span> javafx.scene.layout.Pane;</td><td class="e">Le parent où ajouter les projectiles.</td></tr>
+<tr><td class="n">14</td><td class="c"><span class="kw">import</span> javafx.scene.paint.Color;</td><td class="e">Pour le projectile de secours (cercle vert).</td></tr>
+<tr><td class="n">15</td><td class="c"><span class="kw">import</span> javafx.scene.shape.Circle;</td><td class="e">Forme géométrique utilisée comme projectile fallback.</td></tr>
+<tr><td class="n">16</td><td class="c"><span class="kw">import</span> javafx.util.Duration;</td><td class="e">Utilisé dans KeyFrame pour définir les délais de la Timeline.</td></tr>
+<tr><td class="n">17</td><td class="c"><span class="kw">import</span> java.net.URL;</td><td class="e">Pour vérifier qu'une ressource image existe avant de la charger.</td></tr>
+<tr class="gr"><td class="n">19</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">20</td><td class="c"><span class="kw">public class</span> <span class="ty">ControllerTour</span> {</td><td class="e">Déclaration de la classe.</td></tr>
+<tr class="gr"><td class="n">21</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">22</td><td class="c"><span class="kw">private static final int</span> DIR_BAS = <span class="nu">0</span>;</td><td class="e">Indice 0 dans les tableaux idle[] et idleBlink[] = sprite face vers le bas.</td></tr>
+<tr><td class="n">23</td><td class="c"><span class="kw">private static final int</span> DIR_DROITE = <span class="nu">1</span>;</td><td class="e">Indice 1 = sprite face vers la droite.</td></tr>
+<tr><td class="n">24</td><td class="c"><span class="kw">private static final int</span> DIR_HAUT = <span class="nu">2</span>;</td><td class="e">Indice 2 = sprite face vers le haut.</td></tr>
+<tr><td class="n">25</td><td class="c"><span class="kw">private static final int</span> DIR_GAUCHE = <span class="nu">3</span>;</td><td class="e">Indice 3 = sprite face vers la gauche.</td></tr>
+<tr class="gr"><td class="n">26</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">27</td><td class="c"><span class="kw">private static final</span> String[] DIRECTIONS = {"bas","droite","haut","gauche"};</td><td class="e">Noms des directions pour construire les chemins de fichiers. Ex: indice 0 → "bas" → <code>idle_bas.png</code>.</td></tr>
+<tr class="hi"><td class="n">28</td><td class="c"><span class="kw">private static final long</span> DELAI_TIR = <span class="nu">800_000_000L</span>;</td><td class="e"><strong>800 millions de nanosecondes = 0,8 seconde.</strong> Cadence de tir maximale. Le <code>L</code> indique un littéral long.</td></tr>
+<tr class="gr"><td class="n">29</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">30</td><td class="c"><span class="kw">private static final</span> String BASE_IMAGES = <span class="st">"/com/example/sae2/images/"</span>;</td><td class="e">Préfixe commun à tous les chemins d'images.</td></tr>
+<tr><td class="n">31</td><td class="c"><span class="kw">private static final</span> String DOSSIER_TOUR_BASE = BASE_IMAGES + <span class="st">"SimpleTower/"</span>;</td><td class="e">Chemin vers les sprites de la SimpleTower (valeur par défaut).</td></tr>
+<tr class="gr"><td class="n">32</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">33</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">Group</span> rootTour;</td><td class="e">Le nœud racine de tour.fxml. Contient le Circle de portée et l'ImageView du sprite.</td></tr>
+<tr><td class="n">34</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">Circle</span> portee;</td><td class="e">Le cercle visualisant la portée de la tour (vert si pas d'ennemi, rouge si ennemi détecté).</td></tr>
+<tr><td class="n">35</td><td class="c"><span class="an">@FXML</span> <span class="kw">private</span> <span class="ty">ImageView</span> spriteView;</td><td class="e">L'ImageView qui affiche le sprite de la tour (apparition, idle, blink).</td></tr>
+<tr class="gr"><td class="n">36</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">37</td><td class="c"><span class="kw">private final</span> Image[] idle = <span class="kw">new</span> Image[<span class="nu">4</span>];</td><td class="e">Tableau des 4 sprites "au repos" (un par direction). Indice = constante DIR_*.</td></tr>
+<tr class="hi"><td class="n">38</td><td class="c"><span class="kw">private final</span> Image[] idleBlink = <span class="kw">new</span> Image[<span class="nu">4</span>];</td><td class="e">Tableau des 4 sprites "clignotement" (un par direction). Alternent avec idle pour l'animation des yeux.</td></tr>
+<tr class="gr"><td class="n">39</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">40</td><td class="c"><span class="cm">// Stats du type de tour actuel</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">41</td><td class="c"><span class="kw">private int</span> degatsActuels = <span class="ty">TypeCarte</span>.SIMPLE_TOWER.<span class="me">getDegats</span>();</td><td class="e">Dégâts initiaux = 20 (SimpleTower). Modifiés quand on applique un pouvoir.</td></tr>
+<tr class="hi"><td class="n">42</td><td class="c"><span class="kw">private double</span> vitesseProj = <span class="ty">TypeCarte</span>.SIMPLE_TOWER.<span class="me">getVitesseProjectile</span>();</td><td class="e">Vitesse initiale = 300 px/s. Modifiée quand on applique un pouvoir.</td></tr>
+<tr class="gr"><td class="n">43</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">44</td><td class="c"><span class="kw">private</span> <span class="ty">ModeleEnnemi</span> ennemi;</td><td class="e">Référence à l'ennemi à cibler. Peut être null ou mort.</td></tr>
+<tr><td class="n">45</td><td class="c"><span class="kw">private</span> <span class="ty">Pane</span> parentPane;</td><td class="e">Le paneTours, récupéré depuis le parent du Group. Nécessaire pour y ajouter les projectiles.</td></tr>
+<tr class="gr"><td class="n">46</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">47</td><td class="c"><span class="kw">private double</span> centreTourX;</td><td class="e">Coordonnée X du centre de la tour en pixels. Utilisée pour le calcul de distance et la création des projectiles.</td></tr>
+<tr><td class="n">48</td><td class="c"><span class="kw">private double</span> centreTourY;</td><td class="e">Coordonnée Y du centre.</td></tr>
+<tr><td class="n">49</td><td class="c"><span class="kw">private double</span> porteePixels;</td><td class="e">Portée en pixels (3×64=192px). Seuil pour détecter l'ennemi.</td></tr>
+<tr class="gr"><td class="n">50</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">51</td><td class="c"><span class="kw">private int</span> directionActuelle = DIR_BAS;</td><td class="e">Direction courante du sprite (0=bas par défaut). Mise à jour quand l'ennemi entre en portée.</td></tr>
+<tr><td class="n">52</td><td class="c"><span class="kw">private boolean</span> enApparition = <span class="kw">true</span>;</td><td class="e">true pendant l'animation d'apparition. Bloque le tracking jusqu'à la fin.</td></tr>
+<tr><td class="n">53</td><td class="c"><span class="kw">private boolean</span> enClignotement = <span class="kw">false</span>;</td><td class="e">true pendant le blink. Empêche de changer le sprite de direction pendant l'animation.</td></tr>
+<tr><td class="n">54</td><td class="c"><span class="kw">private boolean</span> ennemiDetecte = <span class="kw">false</span>;</td><td class="e">true si l'ennemi est actuellement en portée. Sert à ne changer le CSS qu'au moment de l'entrée/sortie de portée.</td></tr>
+<tr class="gr"><td class="n">55</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">56</td><td class="c"><span class="kw">private long</span> dernierTir = <span class="nu">0</span>;</td><td class="e">Timestamp du dernier tir. 0 au départ = la tour tire dès qu'un ennemi est détecté.</td></tr>
+<tr><td class="n">57</td><td class="c"><span class="kw">private</span> <span class="ty">Timeline</span> timelineEnCours = <span class="kw">null</span>;</td><td class="e">Référence à la Timeline d'animation courante (idle ou blink). Stockée pour pouvoir la stopper si on change de sprite.</td></tr>
+<tr class="gr"><td class="n">58</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">60</td><td class="c"><span class="cm">// Initialisation FXML</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">62</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">63</td><td class="c"><span class="an">@FXML</span></td><td class="e">Méthode appelée automatiquement après le chargement de tour.fxml.</td></tr>
+<tr class="hi"><td class="n">64</td><td class="c"><span class="kw">public void</span> <span class="me">initialize</span>() {</td><td class="e"><strong>Appelée par FXMLLoader.load() dans tenterPoserTour().</strong> Charge les sprites et lance l'animation d'apparition.</td></tr>
+<tr><td class="n">65</td><td class="c"><span class="me">chargerSprites</span>(DOSSIER_TOUR_BASE);</td><td class="e">Charge idle_bas.png, idle_droite.png… et leurs versions blink pour SimpleTower.</td></tr>
+<tr><td class="n">66</td><td class="c"><span class="me">jouerApparitionDepuis</span>(DOSSIER_TOUR_BASE);</td><td class="e">Lance appear1.png → appear2.png → idle.</td></tr>
+<tr><td class="n">67</td><td class="c">}</td><td class="e">Fin de initialize().</td></tr>
+<tr class="gr"><td class="n">68</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">69</td><td class="c"><span class="kw">public void</span> <span class="me">configurer</span>(<span class="kw">double</span> cx, <span class="kw">double</span> cy, <span class="kw">double</span> rayon, <span class="ty">ModeleEnnemi</span> ennemi) {</td><td class="e">Appelée par GameController après le chargement. Donne à la tour ses paramètres de jeu.</td></tr>
+<tr><td class="n">70</td><td class="c"><span class="kw">this</span>.centreTourX = cx;</td><td class="e">Centre X de la case en pixels (col×64+32).</td></tr>
+<tr><td class="n">71</td><td class="c"><span class="kw">this</span>.centreTourY = cy;</td><td class="e">Centre Y de la case en pixels (ligne×64+32).</td></tr>
+<tr><td class="n">72</td><td class="c"><span class="kw">this</span>.porteePixels = rayon;</td><td class="e">Portée en pixels (3×64=192).</td></tr>
+<tr><td class="n">73</td><td class="c"><span class="kw">this</span>.ennemi = ennemi;</td><td class="e">Référence à l'ennemi à cibler.</td></tr>
+<tr><td class="n">74</td><td class="c"><span class="kw">this</span>.parentPane = (<span class="ty">Pane</span>) rootTour.<span class="me">getParent</span>();</td><td class="e">Récupère le paneTours (parent du Group) pour y ajouter les projectiles plus tard.</td></tr>
+<tr><td class="n">75</td><td class="c"><span class="me">demarrerTracking</span>();</td><td class="e">Lance l'AnimationTimer qui surveille l'ennemi en permanence.</td></tr>
+<tr><td class="n">76</td><td class="c">}</td><td class="e">Fin de configurer().</td></tr>
+<tr class="gr"><td class="n">77</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">79</td><td class="c"><span class="cm">// appliquerPouvoir</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">81</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">82</td><td class="c"><span class="kw">public void</span> <span class="me">appliquerPouvoir</span>(<span class="ty">TypeCarte</span> type) {</td><td class="e">Appelée par GameController quand une carte pouvoir est appliquée à cette tour.</td></tr>
+<tr><td class="n">83</td><td class="c"><span class="cm">// Mettre à jour les stats</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">84</td><td class="c">degatsActuels = type.<span class="me">getDegats</span>();</td><td class="e">Met à jour les dégâts selon le pouvoir (ex: BloodBag → 50, Brimstone → 100).</td></tr>
+<tr class="hi"><td class="n">85</td><td class="c">vitesseProj = type.<span class="me">getVitesseProjectile</span>();</td><td class="e">Met à jour la vitesse (ex: Brimstone → 150 px/s lent, SoyMilk → 500 px/s rapide).</td></tr>
+<tr class="gr"><td class="n">86</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">87</td><td class="c">String base = BASE_IMAGES + type.<span class="me">getDossier</span>() + <span class="st">"/"</span>;</td><td class="e">Construit le chemin vers les sprites du pouvoir (ex: "/images/BloodBag/").</td></tr>
+<tr class="gr"><td class="n">88</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">89</td><td class="c"><span class="cm">// Mettre à jour les tableaux idle/idleBlink</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">90</td><td class="c"><span class="me">chargerSprites</span>(base);</td><td class="e">Recharge les 8 sprites directionnels avec ceux du pouvoir.</td></tr>
+<tr class="gr"><td class="n">91</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">92</td><td class="c"><span class="cm">// Arrêter toute animation en cours</span></td><td class="e">Commentaire.</td></tr>
+<tr><td class="n">93</td><td class="c"><span class="kw">if</span> (timelineEnCours != <span class="kw">null</span>) {</td><td class="e">Si une Timeline (idle ou blink) est active.</td></tr>
+<tr><td class="n">94</td><td class="c">timelineEnCours.<span class="me">stop</span>();</td><td class="e">Arrête la Timeline pour éviter qu'elle change le sprite après les nouveaux chargements.</td></tr>
+<tr><td class="n">95</td><td class="c">timelineEnCours = <span class="kw">null</span>;</td><td class="e">Déréférence pour le GC.</td></tr>
+<tr><td class="n">96</td><td class="c">}</td><td class="e">Fin du if.</td></tr>
+<tr><td class="n">97</td><td class="c">enClignotement = <span class="kw">false</span>;</td><td class="e">Réinitialise l'état de clignotement.</td></tr>
+<tr class="gr"><td class="n">98</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">99</td><td class="c"><span class="cm">// Rejouer l'animation d'apparition</span></td><td class="e">Commentaire.</td></tr>
+<tr class="hi"><td class="n">100</td><td class="c"><span class="me">jouerApparitionDepuis</span>(base);</td><td class="e">Rejoue appear1 → appear2 → idle avec les nouveaux sprites. Effet visuel de transformation.</td></tr>
+<tr><td class="n">101</td><td class="c">}</td><td class="e">Fin de appliquerPouvoir().</td></tr>
+<tr class="gr"><td class="n">102</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">104</td><td class="c"><span class="cm">// Chargement des sprites</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">106</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">107</td><td class="c"><span class="cm">/** Charge idle et idleBlink depuis le dossier donné. */</span></td><td class="e">Javadoc de la méthode.</td></tr>
+<tr><td class="n">108</td><td class="c"><span class="kw">private void</span> <span class="me">chargerSprites</span>(String base) {</td><td class="e">Remplit les tableaux idle[] et idleBlink[] depuis le dossier passé en paramètre.</td></tr>
+<tr class="hi"><td class="n">109</td><td class="c"><span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; DIRECTIONS.length; i++) {</td><td class="e">Boucle sur les 4 directions (0=bas, 1=droite, 2=haut, 3=gauche).</td></tr>
+<tr class="hi"><td class="n">110</td><td class="c">idle[i] = <span class="me">chargerImage</span>(base + <span class="st">"idle_"</span> + DIRECTIONS[i] + <span class="st">".png"</span>);</td><td class="e">Ex: base+"idle_bas.png" → charge l'image depuis le classpath.</td></tr>
+<tr class="hi"><td class="n">111</td><td class="c">idleBlink[i] = <span class="me">chargerImage</span>(base + <span class="st">"idle_"</span> + DIRECTIONS[i] + <span class="st">"_blink.png"</span>);</td><td class="e">Ex: "idle_bas_blink.png" → version clignotante.</td></tr>
+<tr><td class="n">112</td><td class="c">}</td><td class="e">Fin de la boucle.</td></tr>
+<tr><td class="n">113</td><td class="c">}</td><td class="e">Fin de chargerSprites().</td></tr>
+<tr class="gr"><td class="n">114</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">115</td><td class="c"><span class="cm">/** Charge une image depuis son chemin classpath. */</span></td><td class="e">Javadoc.</td></tr>
+<tr><td class="n">116</td><td class="c"><span class="kw">private</span> <span class="ty">Image</span> <span class="me">chargerImage</span>(String cheminAbsolu) {</td><td class="e">Méthode utilitaire. Vérifie d'abord que le fichier existe via getResource().</td></tr>
+<tr><td class="n">117</td><td class="c"><span class="ty">URL</span> url = getClass().<span class="me">getResource</span>(cheminAbsolu);</td><td class="e">Cherche la ressource dans le classpath. Retourne null si introuvable.</td></tr>
+<tr><td class="n">118</td><td class="c"><span class="kw">if</span> (url == <span class="kw">null</span>) {</td><td class="e">Si le fichier n'existe pas.</td></tr>
+<tr><td class="n">119</td><td class="c">System.err.<span class="me">println</span>(<span class="st">"[ControllerTour] Image introuvable : "</span> + cheminAbsolu);</td><td class="e">Message d'erreur en console pour faciliter le débogage.</td></tr>
+<tr><td class="n">120</td><td class="c"><span class="kw">return null</span>;</td><td class="e">Retourne null. Les appels devront vérifier avant d'utiliser.</td></tr>
+<tr><td class="n">121</td><td class="c">}</td><td class="e">Fin du if.</td></tr>
+<tr><td class="n">122</td><td class="c"><span class="kw">return new</span> <span class="ty">Image</span>(url.<span class="me">toExternalForm</span>());</td><td class="e">Charge l'image depuis l'URL. <code>toExternalForm()</code> convertit l'URL en String lisible par Image.</td></tr>
+<tr><td class="n">123</td><td class="c">}</td><td class="e">Fin de chargerImage().</td></tr>
+<tr class="gr"><td class="n">124</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">126</td><td class="c"><span class="cm">// Animation d'apparition</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">128</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">129</td><td class="c"><span class="kw">private void</span> <span class="me">jouerApparitionDepuis</span>(String base) {</td><td class="e">Lance l'animation d'apparition en 3 phases : appear1 → appear2 → idle.</td></tr>
+<tr><td class="n">130</td><td class="c">enApparition = <span class="kw">true</span>;</td><td class="e">Bloque le tracking le temps de l'apparition.</td></tr>
+<tr><td class="n">131</td><td class="c"><span class="ty">Image</span> a1 = <span class="me">chargerImage</span>(base + <span class="st">"appear1.png"</span>);</td><td class="e">Charge la première frame d'apparition.</td></tr>
+<tr><td class="n">132</td><td class="c"><span class="ty">Image</span> a2 = <span class="me">chargerImage</span>(base + <span class="st">"appear2.png"</span>);</td><td class="e">Charge la deuxième frame d'apparition.</td></tr>
+<tr class="gr"><td class="n">133</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">134</td><td class="c">spriteView.<span class="me">setImage</span>(a1);</td><td class="e">Affiche appear1 immédiatement.</td></tr>
+<tr class="hi"><td class="n">135</td><td class="c"><span class="kw">new</span> <span class="ty">Timeline</span>(</td><td class="e">Crée une Timeline avec deux KeyFrames.</td></tr>
+<tr class="hi"><td class="n">136</td><td class="c"><span class="kw">new</span> <span class="ty">KeyFrame</span>(<span class="ty">Duration</span>.<span class="me">millis</span>(<span class="nu">150</span>), e -&gt; spriteView.<span class="me">setImage</span>(a2)),</td><td class="e">Après 150ms : passe à appear2.</td></tr>
+<tr class="hi"><td class="n">137</td><td class="c"><span class="kw">new</span> <span class="ty">KeyFrame</span>(<span class="ty">Duration</span>.<span class="me">millis</span>(<span class="nu">300</span>), e -&gt; { enApparition = <span class="kw">false</span>; <span class="me">planifierIdle</span>(); })</td><td class="e">Après 300ms : fin d'apparition, lance le cycle idle.</td></tr>
+<tr><td class="n">138</td><td class="c">).<span class="me">play</span>();</td><td class="e">Lance immédiatement la Timeline.</td></tr>
+<tr><td class="n">139</td><td class="c">}</td><td class="e">Fin de jouerApparitionDepuis().</td></tr>
+<tr class="gr"><td class="n">140</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">142</td><td class="c"><span class="cm">// Boucle idle / blink</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">144</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">148</td><td class="c"><span class="kw">private void</span> <span class="me">planifierIdle</span>() {</td><td class="e">Affiche le sprite idle et programme un prochain blink dans 2 à 5 secondes.</td></tr>
+<tr><td class="n">149</td><td class="c">enClignotement = <span class="kw">false</span>;</td><td class="e">On n'est plus en train de clignoter.</td></tr>
+<tr><td class="n">150</td><td class="c">spriteView.<span class="me">setImage</span>(idle[directionActuelle]);</td><td class="e">Affiche le sprite idle de la direction courante.</td></tr>
+<tr class="gr"><td class="n">151</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">152</td><td class="c"><span class="kw">double</span> dureeMs = <span class="nu">2000</span> + Math.<span class="me">random</span>() * <span class="nu">3000</span>;</td><td class="e">Délai aléatoire entre 2000 et 5000 ms avant le prochain clignotement. Rend l'animation naturelle.</td></tr>
+<tr><td class="n">153</td><td class="c">timelineEnCours = <span class="kw">new</span> <span class="ty">Timeline</span>(<span class="kw">new</span> <span class="ty">KeyFrame</span>(<span class="ty">Duration</span>.<span class="me">millis</span>(dureeMs), e -&gt; <span class="me">jouerBlink</span>()));</td><td class="e">Après le délai : appelle jouerBlink().</td></tr>
+<tr><td class="n">154</td><td class="c">timelineEnCours.<span class="me">play</span>();</td><td class="e">Lance la Timeline.</td></tr>
+<tr><td class="n">155</td><td class="c">}</td><td class="e">Fin de planifierIdle().</td></tr>
+<tr class="gr"><td class="n">156</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">159</td><td class="c"><span class="kw">private void</span> <span class="me">jouerBlink</span>() {</td><td class="e">Affiche le sprite clignotant pendant 150ms puis repasse à idle.</td></tr>
+<tr><td class="n">160</td><td class="c">enClignotement = <span class="kw">true</span>;</td><td class="e">Empêche le tracking de changer le sprite pendant le blink.</td></tr>
+<tr><td class="n">161</td><td class="c">spriteView.<span class="me">setImage</span>(idleBlink[directionActuelle]);</td><td class="e">Affiche la version clignotante dans la direction courante.</td></tr>
+<tr><td class="n">162</td><td class="c">timelineEnCours = <span class="kw">new</span> <span class="ty">Timeline</span>(<span class="kw">new</span> <span class="ty">KeyFrame</span>(<span class="ty">Duration</span>.<span class="me">millis</span>(<span class="nu">150</span>), e -&gt; <span class="me">planifierIdle</span>()));</td><td class="e">Après 150ms : repasse en idle. Crée un cycle infini : idle → blink → idle…</td></tr>
+<tr><td class="n">163</td><td class="c">timelineEnCours.<span class="me">play</span>();</td><td class="e">Lance le retour à idle.</td></tr>
+<tr><td class="n">164</td><td class="c">}</td><td class="e">Fin de jouerBlink().</td></tr>
+<tr class="gr"><td class="n">165</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">167</td><td class="c"><span class="cm">// Suivi de l'ennemi</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">169</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">172</td><td class="c"><span class="kw">private void</span> <span class="me">demarrerTracking</span>() {</td><td class="e"><strong>Lance l'AnimationTimer de surveillance.</strong> Tourne en permanence pour surveiller l'ennemi.</td></tr>
+<tr><td class="n">173</td><td class="c"><span class="kw">new</span> <span class="ty">AnimationTimer</span>() {</td><td class="e">Classe anonyme avec handle() appelé ~60fps.</td></tr>
+<tr><td class="n">174</td><td class="c"><span class="an">@Override</span></td><td class="e">Redéfinit handle() de AnimationTimer.</td></tr>
+<tr><td class="n">175</td><td class="c"><span class="kw">public void</span> <span class="me">handle</span>(<span class="kw">long</span> now) {</td><td class="e">Appelé à chaque frame.</td></tr>
+<tr><td class="n">176</td><td class="c"><span class="kw">if</span> (enApparition) <span class="kw">return</span>;</td><td class="e">Attend la fin de l'animation d'apparition avant de surveiller.</td></tr>
+<tr class="hi"><td class="n">177</td><td class="c"><span class="kw">if</span> (ennemi == <span class="kw">null</span> || ennemi.<span class="me">estMort</span>()) {</td><td class="e"><strong>Garde mort :</strong> si l'ennemi est mort ou absent, réinitialise et ne fait rien.</td></tr>
+<tr><td class="n">178</td><td class="c"><span class="kw">if</span> (ennemiDetecte) {</td><td class="e">Si on était en état "ennemi détecté" → remettre en vert.</td></tr>
+<tr><td class="n">179</td><td class="c">ennemiDetecte = <span class="kw">false</span>;</td><td class="e">Ennemi n'est plus en portée (il est mort).</td></tr>
+<tr><td class="n">180</td><td class="c"><span class="me">setClassePortee</span>(<span class="st">"portee-libre"</span>);</td><td class="e">Repasse le cercle en vert.</td></tr>
+<tr><td class="n">181</td><td class="c">}</td><td class="e">Fin du if ennemiDetecte.</td></tr>
+<tr><td class="n">182</td><td class="c"><span class="kw">return</span>;</td><td class="e">Sort du handle() sans tirer.</td></tr>
+<tr><td class="n">183</td><td class="c">}</td><td class="e">Fin du if ennemi mort/null.</td></tr>
+<tr class="gr"><td class="n">184</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">185</td><td class="c"><span class="kw">double</span> dx = (ennemi.<span class="me">getX</span>() + <span class="nu">32</span>) - centreTourX;</td><td class="e">Vecteur X vers le centre du sprite ennemi (+32 = moitié de 64px).</td></tr>
+<tr class="hi"><td class="n">186</td><td class="c"><span class="kw">double</span> dy = (ennemi.<span class="me">getY</span>() + <span class="nu">32</span>) - centreTourY;</td><td class="e">Vecteur Y vers le centre du sprite ennemi.</td></tr>
+<tr class="hi"><td class="n">187</td><td class="c"><span class="kw">boolean</span> enPortee = Math.<span class="me">sqrt</span>(dx*dx + dy*dy) &lt;= porteePixels;</td><td class="e"><strong>Distance euclidienne ≤ 192px :</strong> formule de Pythagore. L'ennemi est dans le cercle de portée.</td></tr>
+<tr class="gr"><td class="n">188</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">189</td><td class="c"><span class="kw">if</span> (enPortee) {</td><td class="e">L'ennemi est à portée → logique de ciblage et de tir.</td></tr>
+<tr><td class="n">190</td><td class="c"><span class="kw">if</span> (!ennemiDetecte) {</td><td class="e">L'ennemi vient d'entrer en portée.</td></tr>
+<tr><td class="n">191</td><td class="c">ennemiDetecte = <span class="kw">true</span>;</td><td class="e">Marque comme détecté pour ne pas changer le CSS à chaque frame.</td></tr>
+<tr><td class="n">192</td><td class="c"><span class="me">setClassePortee</span>(<span class="st">"portee-alerte"</span>);</td><td class="e">Passe le cercle de portée en rouge (CSS portee-alerte).</td></tr>
+<tr><td class="n">193</td><td class="c">}</td><td class="e">Fin de l'entrée en portée.</td></tr>
+<tr class="hi"><td class="n">194</td><td class="c"><span class="kw">if</span> (!enClignotement) {</td><td class="e">Ne change pas le sprite pendant un blink (évite les saccades).</td></tr>
+<tr class="hi"><td class="n">195</td><td class="c"><span class="kw">int</span> dir = <span class="me">calculerDirection</span>(dx, dy);</td><td class="e">Calcule la direction vers l'ennemi (0-3) via atan2.</td></tr>
+<tr class="hi"><td class="n">196</td><td class="c"><span class="kw">if</span> (dir != directionActuelle) {</td><td class="e">Si la direction a changé → mettre à jour le sprite.</td></tr>
+<tr class="hi"><td class="n">197</td><td class="c">directionActuelle = dir;</td><td class="e">Mémorise la nouvelle direction.</td></tr>
+<tr class="hi"><td class="n">198</td><td class="c">spriteView.<span class="me">setImage</span>(idle[directionActuelle]);</td><td class="e">Affiche le sprite idle correspondant → la tour "tourne" vers l'ennemi.</td></tr>
+<tr><td class="n">199</td><td class="c">}</td><td class="e">Fin du if direction changée.</td></tr>
+<tr><td class="n">200</td><td class="c">}</td><td class="e">Fin du if !enClignotement.</td></tr>
+<tr class="hi"><td class="n">201</td><td class="c"><span class="kw">if</span> (now - dernierTir &gt;= DELAI_TIR) {</td><td class="e"><strong>Cadence de tir :</strong> 800ms se sont écoulées depuis le dernier tir.</td></tr>
+<tr class="hi"><td class="n">202</td><td class="c"><span class="me">tirerProjectile</span>();</td><td class="e">Crée le projectile et lance son AnimationTimer.</td></tr>
+<tr class="hi"><td class="n">203</td><td class="c">dernierTir = now;</td><td class="e">Mémorise le timestamp du tir pour respecter la cadence.</td></tr>
+<tr><td class="n">204</td><td class="c">}</td><td class="e">Fin du if cadence.</td></tr>
+<tr><td class="n">205</td><td class="c">} <span class="kw">else</span> {</td><td class="e">L'ennemi n'est PAS à portée.</td></tr>
+<tr><td class="n">206</td><td class="c"><span class="kw">if</span> (ennemiDetecte) {</td><td class="e">L'ennemi vient de sortir de portée.</td></tr>
+<tr><td class="n">207</td><td class="c">ennemiDetecte = <span class="kw">false</span>;</td><td class="e">Marque comme non détecté.</td></tr>
+<tr><td class="n">208</td><td class="c"><span class="me">setClassePortee</span>(<span class="st">"portee-libre"</span>);</td><td class="e">Repasse le cercle en vert.</td></tr>
+<tr><td class="n">209</td><td class="c">}</td><td class="e">Fin du if sortie de portée.</td></tr>
+<tr><td class="n">210</td><td class="c">}</td><td class="e">Fin du if/else enPortee.</td></tr>
+<tr><td class="n">211</td><td class="c">}</td><td class="e">Fin de handle().</td></tr>
+<tr><td class="n">212</td><td class="c">}.<span class="me">start</span>();</td><td class="e">Démarre l'AnimationTimer.</td></tr>
+<tr><td class="n">213</td><td class="c">}</td><td class="e">Fin de demarrerTracking().</td></tr>
+<tr class="gr"><td class="n">214</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">216</td><td class="c"><span class="cm">// Tir de projectile</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">218</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">219</td><td class="c"><span class="kw">private void</span> <span class="me">tirerProjectile</span>() {</td><td class="e"><strong>Crée un projectile et l'anime.</strong> Appelé par demarrerTracking() quand la cadence le permet.</td></tr>
+<tr><td class="n">220</td><td class="c"><span class="kw">if</span> (parentPane == <span class="kw">null</span>) { parentPane = (<span class="ty">Pane</span>) rootTour.<span class="me">getParent</span>(); }</td><td class="e">Sécurité : récupère le parent si non encore assigné.</td></tr>
+<tr><td class="n">221</td><td class="c"><span class="kw">if</span> (parentPane == <span class="kw">null</span>) <span class="kw">return</span>;</td><td class="e">Si toujours null (tour pas encore dans le Pane), sort.</td></tr>
+<tr class="gr"><td class="n">222</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">223</td><td class="c">System.out.<span class="me">println</span>(<span class="st">"[Tour] Tir → dégâts="</span> + degatsActuels + <span class="st">" vitesse="</span> + (<span class="kw">int</span>)vitesseProj + <span class="st">" px/s"</span>);</td><td class="e">Affiche dans la console les stats du tir pour le débogage.</td></tr>
+<tr class="hi"><td class="n">224</td><td class="c"><span class="ty">ModeleProjectile</span> projectile = <span class="kw">new</span> <span class="ty">ModeleProjectile</span>(centreTourX, centreTourY, ennemi, degatsActuels, vitesseProj);</td><td class="e"><strong>Crée le modèle du projectile</strong> depuis le centre de la tour. Porte les dégâts et vitesse actuels.</td></tr>
+<tr><td class="n">225</td><td class="c"><span class="ty">Image</span> spriteProj = <span class="me">chargerImage</span>(DOSSIER_TOUR_BASE + <span class="st">"projectile.png"</span>);</td><td class="e">Essaie de charger l'image du projectile. Peut être null (fallback = cercle).</td></tr>
+<tr class="gr"><td class="n">226</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">227</td><td class="c"><span class="ty">ImageView</span> vueSprite = <span class="kw">null</span>;</td><td class="e">Référence à la vue sprite (si l'image existe).</td></tr>
+<tr><td class="n">228</td><td class="c"><span class="ty">Circle</span> boule = <span class="kw">null</span>;</td><td class="e">Référence au cercle de secours.</td></tr>
+<tr class="gr"><td class="n">229</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">230</td><td class="c"><span class="kw">if</span> (spriteProj != <span class="kw">null</span>) {</td><td class="e">L'image projectile existe → utiliser le sprite.</td></tr>
+<tr><td class="n">231</td><td class="c">vueSprite = <span class="kw">new</span> <span class="ty">ImageView</span>(spriteProj);</td><td class="e">Crée l'ImageView du projectile.</td></tr>
+<tr><td class="n">232</td><td class="c">vueSprite.<span class="me">setFitWidth</span>(<span class="nu">20</span>); vueSprite.<span class="me">setFitHeight</span>(<span class="nu">20</span>);</td><td class="e">Le sprite du projectile fait 20×20 pixels.</td></tr>
+<tr><td class="n">233</td><td class="c">vueSprite.<span class="me">setLayoutX</span>(projectile.<span class="me">getX</span>() - <span class="nu">10</span>); vueSprite.<span class="me">setLayoutY</span>(projectile.<span class="me">getY</span>() - <span class="nu">10</span>);</td><td class="e">-10 pour centrer le sprite sur la position du projectile.</td></tr>
+<tr><td class="n">234</td><td class="c">parentPane.<span class="me">getChildren</span>().<span class="me">add</span>(vueSprite);</td><td class="e">Ajoute le sprite au paneTours → visible à l'écran.</td></tr>
+<tr><td class="n">235</td><td class="c">} <span class="kw">else</span> {</td><td class="e">Fallback : pas d'image → cercle vert.</td></tr>
+<tr><td class="n">236</td><td class="c">boule = <span class="kw">new</span> <span class="ty">Circle</span>(<span class="nu">6</span>);</td><td class="e">Cercle de rayon 6px.</td></tr>
+<tr><td class="n">237</td><td class="c">boule.<span class="me">setFill</span>(<span class="ty">Color</span>.LIMEGREEN);</td><td class="e">Couleur vert citron.</td></tr>
+<tr><td class="n">238</td><td class="c">boule.<span class="me">setLayoutX</span>(projectile.<span class="me">getX</span>()); boule.<span class="me">setLayoutY</span>(projectile.<span class="me">getY</span>());</td><td class="e">Positionne le cercle à la position du projectile.</td></tr>
+<tr><td class="n">239</td><td class="c">parentPane.<span class="me">getChildren</span>().<span class="me">add</span>(boule);</td><td class="e">Ajoute le cercle au Pane.</td></tr>
+<tr><td class="n">240</td><td class="c">}</td><td class="e">Fin du if/else sprite.</td></tr>
+<tr class="gr"><td class="n">241</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">242</td><td class="c"><span class="ty">ImageView</span> finalVueSprite = vueSprite;</td><td class="e">Variable finale pour l'utiliser dans le lambda de l'AnimationTimer (Java impose que les variables capturées soient finales).</td></tr>
+<tr><td class="n">243</td><td class="c"><span class="ty">Circle</span> finalBoule = boule;</td><td class="e">Idem pour le cercle.</td></tr>
+<tr class="gr"><td class="n">244</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">245</td><td class="c"><span class="kw">new</span> <span class="ty">AnimationTimer</span>() {</td><td class="e">AnimationTimer dédié à CE projectile. Tourne jusqu'à l'impact.</td></tr>
+<tr><td class="n">246</td><td class="c"><span class="kw">private long</span> tempsPrecedent = -<span class="nu">1</span>;</td><td class="e">Timestamp interne à ce timer.</td></tr>
+<tr><td class="n">247</td><td class="c"><span class="an">@Override</span> <span class="kw">public void</span> <span class="me">handle</span>(<span class="kw">long</span> now) {</td><td class="e">Appelé ~60fps.</td></tr>
+<tr><td class="n">248</td><td class="c"><span class="kw">if</span> (tempsPrecedent &lt; <span class="nu">0</span>) { tempsPrecedent = now; <span class="kw">return</span>; }</td><td class="e">Première frame : initialise le temps.</td></tr>
+<tr><td class="n">249</td><td class="c"><span class="kw">double</span> delta = (now - tempsPrecedent) / <span class="nu">1_000_000_000.0</span>;</td><td class="e">Delta time en secondes.</td></tr>
+<tr><td class="n">250</td><td class="c">tempsPrecedent = now;</td><td class="e">Met à jour le timestamp.</td></tr>
+<tr class="gr"><td class="n">251</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">252</td><td class="c"><span class="kw">boolean</span> touche = projectile.<span class="me">avancer</span>(delta);</td><td class="e"><strong>Déplace le projectile.</strong> avancer() retourne true si l'ennemi est atteint ET inflige les dégâts.</td></tr>
+<tr class="gr"><td class="n">253</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">254</td><td class="c"><span class="kw">if</span> (finalVueSprite != <span class="kw">null</span>) {</td><td class="e">Mode sprite : met à jour la position visuelle.</td></tr>
+<tr><td class="n">255</td><td class="c">finalVueSprite.<span class="me">setLayoutX</span>(projectile.<span class="me">getX</span>() - <span class="nu">10</span>);</td><td class="e">-10 pour centrer le sprite.</td></tr>
+<tr><td class="n">256</td><td class="c">finalVueSprite.<span class="me">setLayoutY</span>(projectile.<span class="me">getY</span>() - <span class="nu">10</span>);</td><td class="e">Idem en Y.</td></tr>
+<tr><td class="n">257</td><td class="c">} <span class="kw">else</span> {</td><td class="e">Mode cercle fallback.</td></tr>
+<tr><td class="n">258</td><td class="c">finalBoule.<span class="me">setLayoutX</span>(projectile.<span class="me">getX</span>());</td><td class="e">Positionne le cercle.</td></tr>
+<tr><td class="n">259</td><td class="c">finalBoule.<span class="me">setLayoutY</span>(projectile.<span class="me">getY</span>());</td><td class="e">Idem Y.</td></tr>
+<tr><td class="n">260</td><td class="c">}</td><td class="e">Fin du if/else visuel.</td></tr>
+<tr class="gr"><td class="n">261</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">262</td><td class="c"><span class="kw">if</span> (touche) {</td><td class="e">L'ennemi a été touché ce frame.</td></tr>
+<tr><td class="n">263</td><td class="c"><span class="kw">if</span> (finalVueSprite != <span class="kw">null</span>) parentPane.<span class="me">getChildren</span>().<span class="me">remove</span>(finalVueSprite);</td><td class="e">Retire le sprite du projectile du Pane.</td></tr>
+<tr><td class="n">264</td><td class="c"><span class="kw">else</span> parentPane.<span class="me">getChildren</span>().<span class="me">remove</span>(finalBoule);</td><td class="e">Ou retire le cercle.</td></tr>
+<tr><td class="n">265</td><td class="c"><span class="me">stop</span>();</td><td class="e">Arrête cet AnimationTimer. Le projectile n'existe plus.</td></tr>
+<tr><td class="n">266</td><td class="c">}</td><td class="e">Fin du if touche.</td></tr>
+<tr><td class="n">267</td><td class="c">}</td><td class="e">Fin de handle().</td></tr>
+<tr><td class="n">268</td><td class="c">}.<span class="me">start</span>();</td><td class="e">Démarre l'AnimationTimer du projectile.</td></tr>
+<tr><td class="n">269</td><td class="c">}</td><td class="e">Fin de tirerProjectile().</td></tr>
+<tr class="gr"><td class="n">270</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">272</td><td class="c"><span class="cm">// Utilitaires</span></td><td class="e">Commentaire de section.</td></tr>
+<tr class="gr"><td class="n">274</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr><td class="n">277</td><td class="c"><span class="kw">private void</span> <span class="me">setClassePortee</span>(String nouvelleClasse) {</td><td class="e">Change la classe CSS du cercle de portée. Enlève les deux classes possibles avant d'ajouter la nouvelle.</td></tr>
+<tr><td class="n">278</td><td class="c">portee.<span class="me">getStyleClass</span>().<span class="me">removeAll</span>(<span class="st">"portee-libre"</span>, <span class="st">"portee-alerte"</span>);</td><td class="e">Retire les deux classes pour éviter les conflits CSS.</td></tr>
+<tr><td class="n">279</td><td class="c">portee.<span class="me">getStyleClass</span>().<span class="me">add</span>(nouvelleClasse);</td><td class="e">Ajoute la nouvelle classe (vert ou rouge).</td></tr>
+<tr><td class="n">280</td><td class="c">}</td><td class="e">Fin de setClassePortee().</td></tr>
+<tr class="gr"><td class="n">281</td><td class="c"></td><td class="e">Ligne vide.</td></tr>
+<tr class="hi"><td class="n">282</td><td class="c"><span class="kw">private int</span> <span class="me">calculerDirection</span>(<span class="kw">double</span> dx, <span class="kw">double</span> dy) {</td><td class="e">Détermine la direction (0-3) en fonction du vecteur vers l'ennemi.</td></tr>
+<tr class="hi"><td class="n">283</td><td class="c"><span class="kw">double</span> angle = Math.<span class="me">toDegrees</span>(Math.<span class="me">atan2</span>(dy, dx));</td><td class="e"><strong>atan2(dy, dx)</strong> = angle en radians du vecteur (dx,dy). Converti en degrés. Ex: dx=10,dy=0 → 0°.</td></tr>
+<tr><td class="n">284</td><td class="c"><span class="kw">if</span> (angle &gt;= -<span class="nu">45</span> &amp;&amp; angle &lt; <span class="nu">45</span>) <span class="kw">return</span> DIR_DROITE;</td><td class="e">L'ennemi est à droite si l'angle est entre -45° et +45°.</td></tr>
+<tr><td class="n">285</td><td class="c"><span class="kw">if</span> (angle &gt;= <span class="nu">45</span> &amp;&amp; angle &lt; <span class="nu">135</span>) <span class="kw">return</span> DIR_BAS;</td><td class="e">Entre 45° et 135° = ennemi en bas.</td></tr>
+<tr><td class="n">286</td><td class="c"><span class="kw">if</span> (angle &gt;= -<span class="nu">135</span> &amp;&amp; angle &lt; -<span class="nu">45</span>) <span class="kw">return</span> DIR_HAUT;</td><td class="e">Entre -135° et -45° = ennemi en haut.</td></tr>
+<tr><td class="n">287</td><td class="c"><span class="kw">return</span> DIR_GAUCHE;</td><td class="e">Reste (≥135° ou ≤-135°) = ennemi à gauche.</td></tr>
+<tr><td class="n">288</td><td class="c">}</td><td class="e">Fin de calculerDirection().</td></tr>
+<tr><td class="n">289</td><td class="c">}</td><td class="e">Fin de la classe ControllerTour.</td></tr>
+</tbody></table>
+</div>
+<!-- END CONTROLLERTOUR -->
+<div class="tab" id="me"><div class="ch"><h2>ModeleEnnemi.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="mt"><div class="ch"><h2>ModeleTerrain.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="tt"><div class="ch"><h2>TypeTuile.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="mo"><div class="ch"><h2>ModeleTypeObstacle.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="md"><div class="ch"><h2>ModeleDeck.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="tc"><div class="ch"><h2>TypeCarte.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="mp"><div class="ch"><h2>ModeleProjectile.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="bfs"><div class="ch"><h2>BFS.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="vd"><div class="ch"><h2>VueDeck.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="ve"><div class="ch"><h2>VueEnnemi.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="vt"><div class="ch"><h2>VueTerrain.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="vo"><div class="ch"><h2>VueObstacles.java</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="fx"><div class="ch"><h2>game-view.fxml</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+<div class="tab" id="ra"><div class="ch"><h2>Raccourcis</h2><p style="color:#8b949e;margin-top:8px">Chargement…</p></div></div>
+
+<script>
+var ids=['archi','gc','ce','ct','me','mt','tt','mo','md','tc','mp','bfs','vd','ve','vt','vo','fx','ra'];
+function show(id){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on')});
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('on')});
+  document.getElementById(id).classList.add('on');
+  var i=ids.indexOf(id);
+  document.querySelectorAll('nav button')[i].classList.add('on');
+}
+</script>
+</body>
+</html>
