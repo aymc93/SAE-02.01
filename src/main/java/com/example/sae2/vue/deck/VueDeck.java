@@ -22,13 +22,11 @@ public class VueDeck {
     private static final double LARGEUR_CARTE = 75;
     private static final double HAUTEUR_CARTE = 110;
 
-    /** Association slot → type de carte (ordre d'insertion initial). */
     private final List<TypeCarte>  slotTypes = new ArrayList<>();
-    /** Association slot → ImageView correspondante (même index que slotTypes). */
     private final List<ImageView>  slotViews = new ArrayList<>();
 
-    /** Appelé quand l'utilisateur clique sur une carte du deck. */
     private final BiConsumer<TypeCarte, ImageView> onCarteCliquee;
+    private ImageView vueSelectionnee = null;
 
     public VueDeck(ModeleDeck modele,
                    HBox groupePouvoirs,
@@ -51,10 +49,21 @@ public class VueDeck {
         }
     }
 
-    /**
-     * Cache le premier slot VISIBLE correspondant au type donné.
-     * L'espace dans le HBox est conservé : les autres cartes ne bougent pas.
-     */
+    /** Marque visuellement une carte comme sélectionnée (retire l'ancienne sélection). */
+    public void selectionner(ImageView vue) {
+        if (vueSelectionnee != null)
+            vueSelectionnee.getStyleClass().remove("carte-selectionnee");
+        vueSelectionnee = vue;
+        if (vue != null)
+            vue.getStyleClass().add("carte-selectionnee");
+    }
+
+    /** Retire la mise en évidence de la carte actuellement sélectionnée. */
+    public void deselectionner() {
+        selectionner(null);
+    }
+
+    /** Cache le premier slot VISIBLE correspondant au type donné. */
     public void masquerCarte(TypeCarte type) {
         for (int i = 0; i < slotTypes.size(); i++) {
             if (slotTypes.get(i) == type && slotViews.get(i).isVisible()) {

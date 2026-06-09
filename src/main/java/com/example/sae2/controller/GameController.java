@@ -4,6 +4,7 @@ import com.example.sae2.modele.carte.ModeleTerrain;
 import com.example.sae2.modele.deck.ModeleDeck;
 import com.example.sae2.modele.deck.TypeCarte;
 import com.example.sae2.modele.ennemis.ModeleEnnemi;
+import com.example.sae2.vue.carte.VueHover;
 import com.example.sae2.vue.carte.VueObstacles;
 import com.example.sae2.vue.carte.VueTerrain;
 import com.example.sae2.vue.deck.VueDeck;
@@ -19,128 +20,95 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GameController {
 
-    // ── Nœuds FXML ───────────────────────────────────────────────────────────
-    @FXML private Pane      paneJeu;
-    @FXML private TilePane  gridTerrain;
-    @FXML private Pane      tilePaneEntites;
-    @FXML private Pane      paneTours;
-    @FXML private Pane      paneEnnemis;
+    @FXML private Pane paneJeu;
+    @FXML private TilePane gridTerrain;
+    @FXML private Pane tilePaneEntites;
+    @FXML private Pane paneTours;
+    @FXML private Pane paneEnnemis;
     @FXML private ImageView hoverCase;
-
-    // Conteneurs du deck (remplis par VueDeck)
     @FXML private HBox groupePouvoirs;
     @FXML private HBox groupeTours;
 
-    // ── Modèle ────────────────────────────────────────────────────────────────
+    // Modèles
     private ModeleTerrain modele;
-    private ModeleDeck    modeleDeck;
-    private int           T;
+    private ModeleDeck modeleDeck;
+    private int T;
 
-    // ── Vue du deck ───────────────────────────────────────────────────────────
+    // Vues
     private VueDeck vueDeck;
+    private VueHover vueHover;
 
-    // clé "ligne,col" → contrôleur de la tour posée sur cette case
+    // Etat du jeu
     private final Map<String, ControllerTour> toursControlleurs = new HashMap<>();
-
-    // Liste des ennemis actifs sur le terrain (modèle → contrôleur)
     private final Map<ModeleEnnemi, ControllerEnnemis> ennemisActifs = new HashMap<>();
-
-    // Référence au dernier ennemi spawné (pour le ciblage des tours)
     private ModeleEnnemi modeleEnnemiActuel = null;
 
-    // ── Sélection en cours ────────────────────────────────────────────────────
-    private TypeCarte  carteSelectionnee     = null;
-    private ImageView  carteSelectionneeView = null;
-
-    // =========================================================================
-    // Initialisation
-    // =========================================================================
+    // Sélection en cours
+    private TypeCarte carteSelectionnee = null;
+    private ImageView carteSelectionneeView = null;
 
     @FXML
     public void initialize() {
         modele = new ModeleTerrain();
         modele.setNiveau(5);
 
+        T = ModeleTerrain.TAILLE_TUILE;
         int cols = modele.getNbColonnes();
         int rows = modele.getNbLignes();
-        T = ModeleTerrain.TAILLE_TUILE;
 
         paneJeu.setPrefSize(cols * T, rows * T);
-
-        gridTerrain.setPrefTileWidth(T);
-        gridTerrain.setPrefTileHeight(T);
-        gridTerrain.setPrefColumns(cols);
-        gridTerrain.setPrefSize(cols * T, rows * T);
-        new VueTerrain(modele, gridTerrain);
-
-        new VueObstacles(modele, tilePaneEntites);
-
         paneTours.setPrefSize(cols * T, rows * T);
 
-        spawnerEnnemi();
+        new VueTerrain(modele, gridTerrain);
+        new VueObstacles(modele, tilePaneEntites);
 
-        // Deck : modèle + vue liés
+        vueHover = new VueHover(hoverCase, T);
+
         modeleDeck = new ModeleDeck();
-        vueDeck    = new VueDeck(modeleDeck, groupePouvoirs, groupeTours, this::selectionnerCarte);
+        vueDeck = new VueDeck(modeleDeck, groupePouvoirs, groupeTours, this::selectionnerCarte);
+
+        spawnerEnnemi();
     }
 
-    // =========================================================================
-    // Sélection de carte (callback depuis VueDeck)
-    // =========================================================================
+    // Sélection de carte
 
     private void selectionnerCarte(TypeCarte type, ImageView vue) {
         if (carteSelectionneeView == vue) {
-            // Clic sur la carte déjà sélectionnée → désélectionner
             deselectionner();
         } else {
             deselectionner();
-            carteSelectionnee     = type;
+            carteSelectionnee = type;
             carteSelectionneeView = vue;
-            vue.getStyleClass().add("carte-selectionnee");
+            vueDeck.selectionner(vue);
         }
     }
 
     private void deselectionner() {
-        if (carteSelectionneeView != null) {
-            carteSelectionneeView.getStyleClass().remove("carte-selectionnee");
-            carteSelectionneeView = null;
-        }
+        vueDeck.deselectionner();
+        carteSelectionneeView = null;
         carteSelectionnee = null;
-        hoverCase.setVisible(false);
+        vueHover.cacher();
     }
 
-    // =========================================================================
-    // Indicateur de survol (hover_case snap-to-grid)
-    // =========================================================================
+    // Gestion du hover
 
     @FXML
     private void actualiserHover(MouseEvent event) {
-        if (carteSelectionnee == null) {
-            hoverCase.setVisible(false);
-            return;
-        }
-        int col   = (int) (event.getX() / T);
-        int ligne = (int) (event.getY() / T);
-        hoverCase.setLayoutX(col   * T);
-        hoverCase.setLayoutY(ligne * T);
-        hoverCase.setVisible(true);
+        if (carteSelectionnee == null) { vueHover.cacher(); return; }
+        vueHover.actualiser(event.getX(), event.getY());
     }
 
     @FXML
     private void cacherHover(MouseEvent event) {
-        hoverCase.setVisible(false);
+        vueHover.cacher();
     }
 
-    // =========================================================================
-    // Clic sur le terrain
-    // =========================================================================
+    // clic sur le terrain
 
     @FXML
     private void placerTour(MouseEvent event) {
@@ -150,19 +118,14 @@ public class GameController {
         int col   = (int) (event.getX() / T);
         int ligne = (int) (event.getY() / T);
 
-        if (ligne < 0 || ligne >= modele.getNbLignes())   return;
-        if (col  < 0 || col   >= modele.getNbColonnes()) return;
+        if (ligne < 0 || ligne >= modele.getNbLignes()) return;
+        if (col < 0 || col >= modele.getNbColonnes()) return;
 
         TypeCarte type = carteSelectionnee;
-        boolean succes;
+        boolean succes = type.estPouvoir()
+                ? tenterAppliquerPouvoir(col, ligne, type)
+                : tenterPoserTour(col, ligne);
 
-        if (type.estPouvoir()) {
-            succes = tenterAppliquerPouvoir(col, ligne, type);
-        } else {
-            succes = tenterPoserTour(col, ligne);
-        }
-
-        // La carte n'est consommée que si le placement a réussi
         if (succes) {
             deselectionner();
             modeleDeck.utiliserCarte(type);
@@ -170,46 +133,39 @@ public class GameController {
         }
     }
 
-    // =========================================================================
-    // Spawn d'un ennemi
-    // =========================================================================
-
     private void spawnerEnnemi() {
         double departX = modele.getColonneEntree() * T;
-        double departY = modele.getLigneEntree()   * T;
+        double departY = modele.getLigneEntree() * T;
 
         ModeleEnnemi modEnnemi = new ModeleEnnemi(departX, departY, 48, "Fatty");
-        VueEnnemi    vueEnnemi = new VueEnnemi(modEnnemi, paneEnnemis, modele.getDossierSprites());
-
+        VueEnnemi vueEnnemi = new VueEnnemi(modEnnemi, paneEnnemis, modele.getDossierSprites());
         ControllerEnnemis ctrl = new ControllerEnnemis(
-            modEnnemi, vueEnnemi, modele,
-            () -> ennemisActifs.remove(modEnnemi)   // onMort : retire de la map
-        );
+                modEnnemi, vueEnnemi, modele,
+                () -> ennemisActifs.remove(modEnnemi));
 
         ennemisActifs.put(modEnnemi, ctrl);
         modeleEnnemiActuel = modEnnemi;
         ctrl.demarrer();
     }
 
-    // ── Pose d'une tour ───────────────────────────────────────────────────────
+    // Pose d'une tour
 
     private boolean tenterPoserTour(int col, int ligne) {
-        if (!estConstructible(ligne, col)) return false;
+        if (!modele.estConstructible(ligne, col)) return false;
         String cle = ligne + "," + col;
         if (toursControlleurs.containsKey(cle)) return false;
 
         try {
             FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/com/example/sae2/tour.fxml")
-            );
-            Group          tourNode = loader.load();
-            ControllerTour ct       = loader.getController();
+                    getClass().getResource("/com/example/sae2/tour.fxml"));
+            Group tourNode = loader.load();
+            ControllerTour ct = loader.getController();
 
-            tourNode.setLayoutX(col   * T);
+            tourNode.setLayoutX(col * T);
             tourNode.setLayoutY(ligne * T);
             paneTours.getChildren().add(tourNode);
 
-            ct.configurer(col * T + T / 2.0, ligne * T + T / 2.0, 3.0 * T, modeleEnnemiActuel);
+            ct.configurer(col, ligne, col * T + T / 2.0, ligne * T + T / 2.0, 3.0 * T, modeleEnnemiActuel);
             toursControlleurs.put(cle, ct);
             return true;
 
@@ -219,22 +175,12 @@ public class GameController {
         }
     }
 
-    // ── Application d'un pouvoir ──────────────────────────────────────────────
+    // Application d'un pouvoir
 
     private boolean tenterAppliquerPouvoir(int col, int ligne, TypeCarte pouvoir) {
-        String cle = ligne + "," + col;
-        ControllerTour ct = toursControlleurs.get(cle);
-        if (ct == null) return false; // pas de tour sur cette case
-
+        ControllerTour ct = toursControlleurs.get(ligne + "," + col);
+        if (ct == null) return false;
         ct.appliquerPouvoir(pouvoir);
-        return true;
-    }
-
-    // ── Vérification de constructibilité ─────────────────────────────────────
-
-    private boolean estConstructible(int ligne, int colonne) {
-        if (!modele.getTuile(ligne, colonne).isSolSimple()) return false;
-        if (modele.getObstaclesGrille()[ligne][colonne] != null) return false;
         return true;
     }
 }

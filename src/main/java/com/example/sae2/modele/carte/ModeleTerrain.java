@@ -109,9 +109,30 @@ public class ModeleTerrain {
     }
 
     public String getDossierSprites() {
-        int tranche = (niveauActuel - 1) / 10; // 0 pour 1-10, 1 pour 11-20, etc.
+        int tranche = (niveauActuel - 1) / 10;
         int debut = tranche * 10 + 1;
         int fin = debut + 9;
         return "Level" + debut + "-" + fin;
+    }
+
+    /** Retourne vrai si on peut poser une tour sur cette case. */
+    public boolean estConstructible(int ligne, int colonne) {
+        return getTuile(ligne, colonne).isSolSimple()
+                && obstaclesGrille[ligne][colonne] == null;
+    }
+
+    /** Retourne la grille des cases bloquées (murs, obstacles), utilisée par le BFS. */
+    public boolean[][] getGrilleBloquee() {
+        boolean[][] bloquee = new boolean[nbLignes][nbColonnes];
+        for (int l = 0; l < nbLignes; l++) {
+            for (int c = 0; c < nbColonnes; c++) {
+                boolean estMur      = !getTuile(l, c).isSolSimple();
+                boolean estObstacle = obstaclesGrille[l][c] != null;
+                boolean estEntree   = l == ligneEntree  && c == colonneEntree;
+                boolean estSortie   = l == ligneSortie  && c == colonneSortie;
+                bloquee[l][c] = (estMur || estObstacle) && !estEntree && !estSortie;
+            }
+        }
+        return bloquee;
     }
 }

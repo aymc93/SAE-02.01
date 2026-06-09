@@ -18,11 +18,17 @@ public class VueTerrain {
     private final Image[] imagesMurCoin;
 
     public VueTerrain(ModeleTerrain terrain, TilePane grille) {
-        String dossier = terrain.getDossierSprites();
+        int cols = terrain.getNbColonnes();
+        int rows = terrain.getNbLignes();
+        grille.setPrefTileWidth(T);
+        grille.setPrefTileHeight(T);
+        grille.setPrefColumns(cols);
+        grille.setPrefSize(cols * T, rows * T);
 
+        String dossier = terrain.getDossierSprites();
         imagesSolSimple = chargerImages("/com/example/sae2/images/" + dossier + "/Sols/Sol");
-        imagesMurBord = chargerImages("/com/example/sae2/images/" + dossier + "/Murs/Mur_Bord");
-        imagesMurCoin = chargerImages("/com/example/sae2/images/" + dossier + "/Murs/Mur_Coin");
+        imagesMurBord   = chargerImages("/com/example/sae2/images/" + dossier + "/Murs/Mur_Bord");
+        imagesMurCoin   = chargerImages("/com/example/sae2/images/" + dossier + "/Murs/Mur_Coin");
 
         peupler(terrain, grille);
     }
