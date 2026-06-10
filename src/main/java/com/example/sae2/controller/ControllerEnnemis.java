@@ -19,8 +19,9 @@ public class ControllerEnnemis {
     private final List<int[]> chemin;
     private final Runnable onMort;
 
-    private int  indexChemin = 0;
-    private long tempsPrecedent = -1;
+    private int            indexChemin    = 0;
+    private long           tempsPrecedent = -1;
+    private AnimationTimer timer;
 
     public ControllerEnnemis(ModeleEnnemi modele, VueEnnemi vue, ModeleTerrain terrain, Runnable onMort) {
         this.modele = modele;
@@ -41,9 +42,13 @@ public class ControllerEnnemis {
     private static double caseEnPixelX(int colonne) { return colonne * T + OFFSET; }
     private static double caseEnPixelY(int ligne) { return ligne * T + OFFSET; }
 
+    public void stopper() {
+        if (timer != null) timer.stop();
+    }
+
     // Démarre l'animation de déplacement de l'ennemi le long du chemin calculé
     public void demarrer() {
-        new AnimationTimer() {
+        timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 if (tempsPrecedent < 0) { tempsPrecedent = now; return; }
@@ -59,7 +64,8 @@ public class ControllerEnnemis {
                 }
 
                 if (chemin.isEmpty() || indexChemin >= chemin.size() - 1) {
-                    vue.actualiser();
+                    vue.supprimer();
+                    onMort.run();
                     stop();
                     return;
                 }
@@ -74,6 +80,7 @@ public class ControllerEnnemis {
 
                 vue.actualiser();
             }
-        }.start();
+        };
+        timer.start();
     }
 }

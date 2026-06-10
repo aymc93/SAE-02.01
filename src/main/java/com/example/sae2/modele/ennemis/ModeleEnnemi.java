@@ -6,15 +6,22 @@ public class ModeleEnnemi {
 
     private double x;
     private double y;
-    private final double vitesse;    // pixels par seconde
-    private final String typeEnnemi; // ex : "Fatty" -> nom du fichier .gif
-    private int pv = PV_MAX;
+    private final double vitesse;
+    private final String typeEnnemi;
+    private final int    pvMax;
+    private int          pv;
 
     public ModeleEnnemi(double x, double y, double vitesse, String typeEnnemi) {
-        this.x = x;
-        this.y = y;
-        this.vitesse = vitesse;
+        this(x, y, vitesse, typeEnnemi, PV_MAX);
+    }
+
+    public ModeleEnnemi(double x, double y, double vitesse, String typeEnnemi, int pvMax) {
+        this.x          = x;
+        this.y          = y;
+        this.vitesse    = vitesse;
         this.typeEnnemi = typeEnnemi;
+        this.pvMax      = pvMax;
+        this.pv         = pvMax;
     }
 
     public boolean deplacerVers(double targetX, double targetY, double delta) {
@@ -37,12 +44,13 @@ public class ModeleEnnemi {
     public void subirDegats(int degats) {
         if (pv <= 0) return;                      // projectiles en vol ignorés après mort
         pv = Math.max(0, pv - degats);
-        System.out.println("[Ennemi] -" + degats + " PV  →  " + pv + " / " + PV_MAX + " PV restants"
+        System.out.println("[Ennemi] -" + degats + " PV  →  " + pv + " / " + pvMax + " PV restants"
                 + (pv == 0 ? "  (MORT)" : ""));
     }
 
-    public boolean estMort() { return pv <= 0; }
-    public int     getPv()   { return pv; }
+    public boolean estMort()  { return pv <= 0; }
+    public int     getPv()    { return pv; }
+    public int     getPvMax() { return pvMax; }
 
     public double getX()          { return x; }
     public double getY()          { return y; }

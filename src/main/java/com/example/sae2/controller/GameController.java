@@ -4,11 +4,19 @@ import com.example.sae2.modele.carte.ModeleTerrain;
 import com.example.sae2.modele.deck.ModeleDeck;
 import com.example.sae2.modele.deck.TypeCarte;
 import com.example.sae2.modele.ennemis.ModeleEnnemi;
+import com.example.sae2.modele.ennemis.ModeleVague;
+import com.example.sae2.modele.joueur.ModeleJoueur;
+import com.example.sae2.vue.VueGameOver;
 import com.example.sae2.vue.carte.VueHover;
 import com.example.sae2.vue.carte.VueObstacles;
 import com.example.sae2.vue.carte.VueTerrain;
+import com.example.sae2.vue.deck.VueAnimPerteCoeur;
+import com.example.sae2.vue.deck.VueArgent;
+import com.example.sae2.vue.deck.VueCoeurs;
 import com.example.sae2.vue.deck.VueDeck;
 import com.example.sae2.vue.ennemis.VueEnnemi;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
@@ -18,9 +26,13 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GameController {
@@ -33,20 +45,34 @@ public class GameController {
     @FXML private ImageView hoverCase;
     @FXML private HBox groupePouvoirs;
     @FXML private HBox groupeTours;
+    @FXML private HBox paneArgent;
+    @FXML private HBox paneCoeurs;
 
     // Modèles
     private ModeleTerrain modele;
     private ModeleDeck modeleDeck;
+    private ModeleJoueur modeleJoueur;
     private int T;
 
     // Vues
     private VueDeck vueDeck;
     private VueHover vueHover;
+    private VueArgent vueArgent;
+    private VueCoeurs vueCoeurs;
+    private VueAnimPerteCoeur vueAnimPerteCoeur;
+    private VueGameOver vueGameOver;
+
+    // Vagues
+    private static final List<ModeleVague> VAGUES = List.of(
+        new ModeleVague(5, "Fatty", 500, 48, 2.0)
+    );
+    private int indexVague              = 0;
+    private int ennemisVivantsDansVague = 0;
 
     // Etat du jeu
-    private final Map<String, ControllerTour> toursControlleurs = new HashMap<>();
-    private final Map<ModeleEnnemi, ControllerEnnemis> ennemisActifs = new HashMap<>();
-    private ModeleEnnemi modeleEnnemiActuel = null;
+    private final Map<String, ControllerTour>          toursControlleurs = new HashMap<>();
+    private final Map<ModeleEnnemi, ControllerEnnemis> ennemisActifs     = new HashMap<>();
+    private final List<Timeline>                       timelinesActives  = new ArrayList<>();
 
     // Sélection en cours
     private TypeCarte carteSelectionnee = null;
@@ -55,7 +81,7 @@ public class GameController {
     @FXML
     public void initialize() {
         modele = new ModeleTerrain();
-        modele.setNiveau(5);
+        modele.setNiveau(45);
 
         T = ModeleTerrain.TAILLE_TUILE;
         int cols = modele.getNbColonnes();
@@ -72,7 +98,13 @@ public class GameController {
         modeleDeck = new ModeleDeck();
         vueDeck = new VueDeck(modeleDeck, groupePouvoirs, groupeTours, this::selectionnerCarte);
 
-        spawnerEnnemi();
+        modeleJoueur       = new ModeleJoueur();
+        vueArgent          = new VueArgent(paneArgent);
+        vueCoeurs          = new VueCoeurs(paneCoeurs);
+        vueAnimPerteCoeur  = new VueAnimPerteCoeur(paneJeu);
+        vueGameOver        = new VueGameOver();
+
+        demarrerVague();
     }
 
     // Sélection de carte
@@ -133,19 +165,69 @@ public class GameController {
         }
     }
 
-    private void spawnerEnnemi() {
+    // Lance la vague courante : spawn des ennemis espacés dans le temps
+    private void demarrerVague() {
+        if (indexVague >= VAGUES.size()) {
+            System.out.println("[Vagues] Toutes les vagues terminées !");
+            return;
+        }
+        ModeleVague vague = VAGUES.get(indexVague);
+        System.out.println("[Vagues] ── Vague " + (indexVague + 1) + " / " + VAGUES.size()
+                + "  (" + vague.getNombreEnnemis() + " ennemis, " + vague.getPvBase() + " PV) ──");
+
+        ennemisVivantsDansVague = vague.getNombreEnnemis();
+
+        for (int i = 0; i < vague.getNombreEnnemis(); i++) {
+            double delai = i * vague.getIntervalleSpawn();
+            Timeline t = new Timeline(new KeyFrame(Duration.seconds(delai), e -> spawnerEnnemi(vague)));
+            timelinesActives.add(t);
+            t.play();
+        }
+    }
+
+    private void spawnerEnnemi(ModeleVague vague) {
         double departX = modele.getColonneEntree() * T;
         double departY = modele.getLigneEntree() * T;
 
-        ModeleEnnemi modEnnemi = new ModeleEnnemi(departX, departY, 48, "Fatty");
+        ModeleEnnemi modEnnemi = new ModeleEnnemi(
+                departX, departY, vague.getVitesse(), vague.getTypeEnnemi(), vague.getPvBase());
         VueEnnemi vueEnnemi = new VueEnnemi(modEnnemi, paneEnnemis, modele.getDossierSprites());
         ControllerEnnemis ctrl = new ControllerEnnemis(
                 modEnnemi, vueEnnemi, modele,
-                () -> ennemisActifs.remove(modEnnemi));
+                () -> {
+                    boolean estTue = modEnnemi.estMort();
+                    ennemisActifs.remove(modEnnemi);
+                    if (estTue) {
+                        modeleJoueur.gagnerArgentKill();
+                        vueArgent.actualiser(modeleJoueur.getArgent());
+                    } else {
+                        modeleJoueur.perdreVie();
+                        vueCoeurs.actualiser(modeleJoueur.getVies());
+                        vueAnimPerteCoeur.jouer();
+                        if (!modeleJoueur.estEnVie()) {
+                            arreterJeu();
+                            Stage stage = (Stage) paneJeu.getScene().getWindow();
+                            vueGameOver.afficher(stage);
+                        }
+                    }
+                    if (--ennemisVivantsDansVague == 0 && modeleJoueur.estEnVie()) {
+                        indexVague++;
+                        Timeline t = new Timeline(new KeyFrame(Duration.seconds(4), e -> demarrerVague()));
+                        timelinesActives.add(t);
+                        t.play();
+                    }
+                });
 
         ennemisActifs.put(modEnnemi, ctrl);
-        modeleEnnemiActuel = modEnnemi;
         ctrl.demarrer();
+    }
+
+    // Arrête tous les timers et timelines (game over)
+    private void arreterJeu() {
+        timelinesActives.forEach(Timeline::stop);
+        timelinesActives.clear();
+        ennemisActifs.values().forEach(ControllerEnnemis::stopper);
+        toursControlleurs.values().forEach(ControllerTour::stopper);
     }
 
     // Pose d'une tour
@@ -165,7 +247,8 @@ public class GameController {
             tourNode.setLayoutY(ligne * T);
             paneTours.getChildren().add(tourNode);
 
-            ct.configurer(col, ligne, col * T + T / 2.0, ligne * T + T / 2.0, 3.0 * T, modeleEnnemiActuel);
+            ct.configurer(col, ligne, col * T + T / 2.0, ligne * T + T / 2.0, 3.0 * T,
+                    () -> ennemisActifs.keySet());
             toursControlleurs.put(cle, ct);
             return true;
 

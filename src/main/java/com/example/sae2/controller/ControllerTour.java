@@ -12,6 +12,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 
+import java.util.Collection;
+import java.util.function.Supplier;
+
 public class ControllerTour {
 
     private static final long DELAI_TIR = 800000000; // 0.8 secondes en nanosecondes
@@ -22,21 +25,23 @@ public class ControllerTour {
 
     private ModeleTour modele;
     private VueTour vue;
-    private ModeleEnnemi ennemi;
+    private Supplier<Collection<ModeleEnnemi>> sourceEnnemis;
 
     private double centreTourX;
     private double centreTourY;
     private double porteePixels;
 
-    private boolean enApparition  = true;
-    private boolean ennemiDetecte = false;
-    private long dernierTir = 0;
+    private boolean        enApparition  = true;
+    private boolean        ennemiDetecte = false;
+    private long           dernierTir    = 0;
+    private AnimationTimer timerTracking;
 
-    public void configurer(int col, int ligne, double cx, double cy, double rayon, ModeleEnnemi ennemi) {
-        this.centreTourX = cx;
-        this.centreTourY = cy;
-        this.porteePixels = rayon;
-        this.ennemi = ennemi;
+    public void configurer(int col, int ligne, double cx, double cy, double rayon,
+                           Supplier<Collection<ModeleEnnemi>> sourceEnnemis) {
+        this.centreTourX   = cx;
+        this.centreTourY   = cy;
+        this.porteePixels  = rayon;
+        this.sourceEnnemis = sourceEnnemis;
 
         this.modele = new ModeleTour(col, ligne);
         this.vue = new VueTour(spriteView, portee, (Pane) rootTour.getParent());
@@ -52,50 +57,55 @@ public class ControllerTour {
     }
 
 
+    public void stopper() {
+        if (timerTracking != null) timerTracking.stop();
+    }
+
     // Boucle de suivi
     private void demarrerTracking() {
-        new AnimationTimer() {
+        timerTracking = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 if (enApparition) return;
-                if (ennemi == null || ennemi.estMort()) {
-                    if (ennemiDetecte) {
-                        ennemiDetecte = false;
-                        vue.setAlerte(false);
+
+                // Chercher l'ennemi le plus proche dans la portée
+                ModeleEnnemi cible = null;
+                double distMin = Double.MAX_VALUE;
+                for (ModeleEnnemi e : sourceEnnemis.get()) {
+                    if (e.estMort()) continue;
+                    double dx = (e.getX() + 32) - centreTourX;
+                    double dy = (e.getY() + 32) - centreTourY;
+                    double dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist <= porteePixels && dist < distMin) {
+                        distMin = dist;
+                        cible = e;
                     }
+                }
+
+                if (cible == null) {
+                    if (ennemiDetecte) { ennemiDetecte = false; vue.setAlerte(false); }
                     return;
                 }
 
-                double dx = (ennemi.getX() + 32) - centreTourX;
-                double dy = (ennemi.getY() + 32) - centreTourY;
-                boolean enPortee = Math.sqrt(dx * dx + dy * dy) <= porteePixels;
-
-                if (enPortee) {
-                    if (!ennemiDetecte) {
-                        ennemiDetecte = true;
-                        vue.setAlerte(true);
-                    }
-                    vue.setDirection(ModeleTour.calculerDirection(dx, dy));
-                    if (now - dernierTir >= DELAI_TIR) {
-                        tirerProjectile();
-                        dernierTir = now;
-                    }
-                } else {
-                    if (ennemiDetecte) {
-                        ennemiDetecte = false;
-                        vue.setAlerte(false);
-                    }
+                if (!ennemiDetecte) { ennemiDetecte = true; vue.setAlerte(true); }
+                double dx = (cible.getX() + 32) - centreTourX;
+                double dy = (cible.getY() + 32) - centreTourY;
+                vue.setDirection(ModeleTour.calculerDirection(dx, dy));
+                if (now - dernierTir >= DELAI_TIR) {
+                    tirerProjectile(cible);
+                    dernierTir = now;
                 }
             }
-        }.start();
+        };
+        timerTracking.start();
     }
 
     // Création du projectile
-    private void tirerProjectile() {
+    private void tirerProjectile(ModeleEnnemi cible) {
         System.out.println("[Tour] Tir  →  dégâts=" + modele.getDegats()
                 + "  vitesse=" + (int) modele.getVitesseProjectile() + " px/s");
         ModeleProjectile projectile = new ModeleProjectile(
-                centreTourX, centreTourY, ennemi,
+                centreTourX, centreTourY, cible,
                 modele.getDegats(), modele.getVitesseProjectile());
         vue.afficherProjectile(projectile);
     }

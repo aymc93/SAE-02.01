@@ -14,6 +14,7 @@ public class VueEnnemi {
     private final ModeleEnnemi modele;
     private final ImageView    imageView;
     private final Pane         pane;
+    private final VueBarreVie  barreVie;
 
     public VueEnnemi(ModeleEnnemi modele, Pane pane, String dossierSprites) {
         this.modele    = modele;
@@ -35,17 +36,20 @@ public class VueEnnemi {
         }
 
         pane.getChildren().add(imageView);
+        this.barreVie = new VueBarreVie(modele, pane);
         actualiser();
     }
 
-    /** Met à jour la position du sprite. */
+    /** Met à jour la position du sprite et de la barre de vie. */
     public void actualiser() {
         imageView.setLayoutX(modele.getX());
         imageView.setLayoutY(modele.getY());
+        barreVie.actualiser();
     }
 
-    /** Retire le sprite du terrain (ennemi mort ou sorti). */
+    /** Retire le sprite et la barre de vie du terrain. */
     public void supprimer() {
         pane.getChildren().remove(imageView);
+        barreVie.supprimer();
     }
 }
