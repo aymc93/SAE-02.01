@@ -11,7 +11,7 @@ public enum TypeCarte {
     SIMPLE_TOWER("SimpleTower",  20,  300.0),
     BLOODBAG    ("BloodBag",     50,  300.0),   // moyen
     BRIMSTONE   ("Brimstone",   100,  150.0),   // lent
-    SOYMILK     ("SoyMilk",      10,  500.0);   // rapide
+    SOYMILK     ("SoyMilk",      30,  1500.0);   // rapide
 
     private final String dossier;
     private final int    degats;

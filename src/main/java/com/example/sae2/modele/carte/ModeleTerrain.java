@@ -35,15 +35,15 @@ public class ModeleTerrain {
     private static final int[][] OBSTACLES = {
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 },
-            { 0, 0, 0, 0, 0, 1, 0, 2, 0, 1, 0, 0 },
+            { 0, 2, 0, 1, 0, 1, 0, 2, 0, 1, 0, 0 },
+            { 0, 0, 0, 2, 0, 1, 0, 2, 0, 0, 0, 0 },
+            { 0, 0, 1, 0, 0, 1, 0, 2, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0 },
+            { 0, 0, 2, 0, 0, 1, 0, 2, 1, 1, 0, 0 },
             { 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 1, 0, 2, 1, 1, 1, 0 },
-            { 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0 },
+            { 0, 0, 0, 2, 0, 1, 0, 2, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     };
 
@@ -109,8 +109,10 @@ public class ModeleTerrain {
     }
 
     public String getDossierSprites() {
-        int tranche = (niveauActuel - 1) / 10;
-        int debut = tranche * 10 + 1;
+        // Si niveau = 1 -> debut = 1
+        // Si niveau = 2 -> debut = 11
+        // Si niveau = 3 -> debut = 21
+        int debut = (niveauActuel - 1) * 10 + 1;
         int fin = debut + 9;
         return "Level" + debut + "-" + fin;
     }
@@ -135,4 +137,38 @@ public class ModeleTerrain {
         }
         return bloquee;
     }
+
+    public int[] getTuileAleatoireLibre() {
+        boolean[][] grille = getGrilleBloquee();
+        java.util.Random rand = new java.util.Random();
+        int l, c;
+        do {
+            l = rand.nextInt(grille.length);
+            c = rand.nextInt(grille[0].length);
+        } while (grille[l][c]);
+        return new int[]{l, c};
+    }
+
+    /** Tente de déplacer un obstacle d'une case à une autre */
+    public boolean deplacerObstacle(int oldL, int oldC, int newL, int newC) {
+        // 1. Vérifier si on est bien sur la carte
+        if (newL < 0 || newL >= nbLignes || newC < 0 || newC >= nbColonnes) return false;
+
+        // 2. Vérifier si la case est constructible (pas un mur ou un autre obstacle)
+        if (!estConstructible(newL, newC)) return false;
+
+        // 3. Empêcher de bloquer les portes
+        if ((newL == ligneEntree && newC == colonneEntree) || (newL == ligneSortie && newC == colonneSortie)) {
+            return false;
+        }
+
+        // 4. On déplace l'obstacle dans la grille logique
+        obstaclesGrille[newL][newC] = obstaclesGrille[oldL][oldC];
+        obstaclesGrille[oldL][oldC] = null;
+
+        return true;
+    }
+
+
+
 }

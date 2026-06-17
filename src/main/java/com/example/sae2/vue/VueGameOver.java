@@ -28,7 +28,6 @@ public class VueGameOver {
         iv.setPreserveRatio(false);
 
         StackPane root = new StackPane(iv);
-        root.setStyle("-fx-background-color: black;");
 
         Stage stageGameOver = new Stage();
         stageGameOver.setTitle("Game Over");

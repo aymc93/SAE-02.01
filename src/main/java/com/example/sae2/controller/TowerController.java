@@ -17,33 +17,27 @@ import java.util.Map;
 public class TowerController {
 
     private final GameController main;
-    private final WaveController wave;
-    private static final long DELAI_TIR = 800000000L;
+    private final EnnemiController ennemiController;
 
     public class EtatTour {
         final ModeleTour modele;
         final VueTour vue;
-        final double cx, cy, porteePixels;
         boolean enApparition = true;
         boolean ennemiDetecte = false;
-        long dernierTir = 0;
         AnimationTimer timerTracking;
 
-        EtatTour(ModeleTour modele, VueTour vue, double cx, double cy, double porteePixels) {
+        EtatTour(ModeleTour modele, VueTour vue) {
             this.modele = modele;
             this.vue = vue;
-            this.cx = cx;
-            this.cy = cy;
-            this.porteePixels = porteePixels;
         }
         void stopper() { if (timerTracking != null) timerTracking.stop(); }
     }
 
     private final Map<String, EtatTour> tours = new HashMap<>();
 
-    public TowerController(GameController main, WaveController wave) {
+    public TowerController(GameController main, EnnemiController ennemiController) {
         this.main = main;
-        this.wave = wave;
+        this.ennemiController = ennemiController;
     }
 
     public boolean tenterPoserTour(int col, int ligne) {
@@ -55,7 +49,8 @@ public class TowerController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/sae2/tour.fxml"));
             Group tourNode = loader.load();
 
-            tourNode.setMouseTransparent(true);
+            // 1. ON FORCE LA TRANSPARENCE À FALSE (au cas où le FXML la bloque)
+            tourNode.setMouseTransparent(false);
 
             tourNode.setLayoutX(col * main.T);
             tourNode.setLayoutY(ligne * main.T);
@@ -64,23 +59,96 @@ public class TowerController {
             Circle porteeShape = (Circle) tourNode.lookup("#portee");
             ImageView spriteView = (ImageView) tourNode.lookup("#spriteView");
 
-            double cx = col * main.T + main.T / 2.0;
-            double cy = ligne * main.T + main.T / 2.0;
-            double portee = 3.0 * main.T;
-
             ModeleTour modeleTour = new ModeleTour(col, ligne);
             VueTour vueTour = new VueTour(spriteView, porteeShape, main.paneTours);
 
-            EtatTour etat = new EtatTour(modeleTour, vueTour, cx, cy, portee);
+            EtatTour etat = new EtatTour(modeleTour, vueTour);
             vueTour.initialiser(TypeCarte.SIMPLE_TOWER.getDossier(), () -> etat.enApparition = false);
 
             tours.put(cle, etat);
             demarrerTracking(etat);
+
+            // 2. ON PASSE LE SPRITEVIEW À LA MÉTHODE POUR CIBLER L'IMAGE EXACTE
+            ajouterDragAndDrop(tourNode, spriteView, etat, cle);
+
             return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private void ajouterDragAndDrop(Group tourNode, ImageView spriteView, EtatTour etat, String cle) {
+        spriteView.setStyle("-fx-cursor: hand;");
+
+        spriteView.setOnMousePressed(event -> {
+            if (main.carteSelectionnee != null && main.carteSelectionnee.estPouvoir()) {
+                boolean succes = tenterAppliquerPouvoir(etat.modele.getColonne(), etat.modele.getLigne(), main.carteSelectionnee);
+                if (succes) {
+                    TypeCarte type = main.carteSelectionnee;
+                    main.deselectionner();
+                    main.modeleDeck.utiliserCarte(type);
+                    main.vueDeck.masquerCarte(type);
+                }
+                event.consume();
+                return;
+            }
+
+            tourNode.toFront();
+            tourNode.getProperties().put("initX", tourNode.getLayoutX());
+            tourNode.getProperties().put("initY", tourNode.getLayoutY());
+            tourNode.getProperties().put("mouseStartX", event.getSceneX());
+            tourNode.getProperties().put("mouseStartY", event.getSceneY());
+            event.consume();
+        });
+
+        spriteView.setOnMouseDragged(event -> {
+            // SÉCURITÉ : On vérifie que le drag a bien commencé proprement !
+            if (tourNode.getProperties().get("mouseStartX") == null) return;
+            if (main.carteSelectionnee != null && main.carteSelectionnee.estPouvoir()) return;
+
+            double deltaX = event.getSceneX() - (double) tourNode.getProperties().get("mouseStartX");
+            double deltaY = event.getSceneY() - (double) tourNode.getProperties().get("mouseStartY");
+            tourNode.setLayoutX((double) tourNode.getProperties().get("initX") + deltaX);
+            tourNode.setLayoutY((double) tourNode.getProperties().get("initY") + deltaY);
+            event.consume();
+        });
+
+        spriteView.setOnMouseReleased(event -> {
+            // SÉCURITÉ : On vérifie que la tour a bien été attrapée !
+            if (tourNode.getProperties().get("initX") == null) return;
+            if (main.carteSelectionnee != null && main.carteSelectionnee.estPouvoir()) return;
+
+            if (event.getSceneY() > main.paneJeu.getHeight()) {
+                vendreTour(cle, etat, tourNode);
+            } else {
+                tourNode.setLayoutX((double) tourNode.getProperties().get("initX"));
+                tourNode.setLayoutY((double) tourNode.getProperties().get("initY"));
+            }
+
+            // On nettoie les propriétés pour éviter les bugs futurs
+            tourNode.getProperties().remove("mouseStartX");
+            tourNode.getProperties().remove("mouseStartY");
+            tourNode.getProperties().remove("initX");
+            tourNode.getProperties().remove("initY");
+
+            event.consume();
+        });
+    }
+
+    private void vendreTour(String cle, EtatTour etat, Group tourNode) {
+        System.out.println("[Boutique] Tour vendue ! +50 pièces.");
+
+        // 1. On arrête les calculs de cette tour
+        etat.stopper();
+
+        // 2. On retire la tour visuellement et logiquement
+        main.paneTours.getChildren().remove(tourNode);
+        tours.remove(cle);
+
+        // 3. On rembourse le joueur (Ici j'ai mis 50 pièces, à toi de choisir le montant !)
+        main.modeleJoueur.ajouterArgent(50);
+        main.vueArgent.actualiser(main.modeleJoueur.getArgent());
     }
 
     private void demarrerTracking(EtatTour etat) {
@@ -89,33 +157,25 @@ public class TowerController {
             public void handle(long now) {
                 if (etat.enApparition) return;
 
-                ModeleEnnemi cible = null;
-                double distMin = Double.MAX_VALUE;
-                for (ModeleEnnemi e : wave.ennemisActifs.keySet()) {
-                    if (e.estMort()) continue;
-                    double dx = (e.getX() + 32) - etat.cx;
-                    double dy = (e.getY() + 32) - etat.cy;
-                    double dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist <= etat.porteePixels && dist < distMin) {
-                        distMin = dist;
-                        cible = e;
-                    }
-                }
+                ModeleEnnemi cible = etat.modele.trouverCible(ennemiController.ennemisActifs.keySet(), main.T);
 
                 if (cible == null) {
-                    if (etat.ennemiDetecte) { etat.ennemiDetecte = false; etat.vue.setAlerte(false); }
+                    if (etat.ennemiDetecte) {
+                        etat.ennemiDetecte = false;
+                        etat.vue.setAlerte(false);
+                    }
                     return;
                 }
 
-                if (!etat.ennemiDetecte) { etat.ennemiDetecte = true; etat.vue.setAlerte(true); }
+                if (!etat.ennemiDetecte) {
+                    etat.ennemiDetecte = true;
+                    etat.vue.setAlerte(true);
+                }
 
-                double dx = (cible.getX() + 32) - etat.cx;
-                double dy = (cible.getY() + 32) - etat.cy;
-                etat.vue.setDirection(ModeleTour.calculerDirection(dx, dy));
+                etat.vue.setDirection(etat.modele.calculerDirectionVers(cible, main.T));
 
-                if (now - etat.dernierTir >= DELAI_TIR) {
+                if (etat.modele.peutTirer(now)) {
                     tirerProjectile(etat, cible);
-                    etat.dernierTir = now;
                 }
             }
         };
@@ -123,7 +183,10 @@ public class TowerController {
     }
 
     private void tirerProjectile(EtatTour etat, ModeleEnnemi cible) {
-        ModeleProjectile projectile = new ModeleProjectile(etat.cx, etat.cy, cible, etat.modele.getDegats(), etat.modele.getVitesseProjectile());
+        double cx = etat.modele.getColonne() * main.T + main.T / 2.0;
+        double cy = etat.modele.getLigne() * main.T + main.T / 2.0;
+
+        ModeleProjectile projectile = new ModeleProjectile(cx, cy, cible, etat.modele.getDegats(), etat.modele.getVitesseProjectile());
         etat.vue.afficherProjectile(projectile);
     }
 
@@ -134,6 +197,10 @@ public class TowerController {
         etat.enApparition = true;
         etat.vue.changerDossier(pouvoir.getDossier(), () -> etat.enApparition = false);
         return true;
+    }
+
+    public boolean possedeTour(int ligne, int col) {
+        return tours.containsKey(ligne + "," + col);
     }
 
     public void arreter() {

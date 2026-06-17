@@ -4,8 +4,6 @@ import com.example.sae2.modele.carte.ModeleTerrain;
 import com.example.sae2.modele.deck.ModeleDeck;
 import com.example.sae2.modele.deck.TypeCarte;
 import com.example.sae2.modele.joueur.ModeleJoueur;
-import com.example.sae2.vue.carte.VueHover;
-import com.example.sae2.vue.carte.VueObstacles;
 import com.example.sae2.vue.carte.VueTerrain;
 import com.example.sae2.vue.deck.VueArgent;
 import com.example.sae2.vue.deck.VueCoeurs;
@@ -31,40 +29,39 @@ public class GameController {
     @FXML private HBox paneArgent;
     @FXML private HBox paneCoeurs;
 
-    // Injection automatique du contrôleur de la boutique par JavaFX
     @FXML private ShopController boutiqueController;
 
+    // --- Accès rapides pour les autres contrôleurs ---
     public ModeleTerrain modele;
+    public int T;
+    // -------------------------------------------------
+
     public ModeleDeck modeleDeck;
     public ModeleJoueur modeleJoueur;
-    public int T;
 
     public VueDeck vueDeck;
-    private VueHover vueHover;
     public VueArgent vueArgent;
     public VueCoeurs vueCoeurs;
 
-    private VueTerrain vueTerrain;
-
+    // --- Nos 4 Contrôleurs du jeu ---
+    private TerrainController terrainController;
     private WaveController waveController;
-    private TowerController towerController;
+    private EnnemiController ennemiController;
+    public TowerController towerController;
 
     public TypeCarte carteSelectionnee = null;
     private ImageView carteSelectionneeView = null;
 
     @FXML
     public void initialize() {
-        modele = new ModeleTerrain();
-        modele.setNiveau(5);
-        T = ModeleTerrain.TAILLE_TUILE;
+        // 1. Initialisation du Terrain
+        terrainController = new TerrainController(this, gridTerrain, tilePaneEntites, hoverCase);
 
-        paneJeu.setPrefSize(modele.getNbColonnes() * T, modele.getNbLignes() * T);
-        paneTours.setPrefSize(modele.getNbColonnes() * T, modele.getNbLignes() * T);
+        // Raccourcis pour ne pas casser tes autres contrôleurs
+        modele = terrainController.getModele();
+        T = terrainController.getT();
 
-        vueTerrain = new VueTerrain(modele, gridTerrain);
-        new VueObstacles(modele, tilePaneEntites);
-        vueHover = new VueHover(hoverCase, T);
-
+        // 2. Initialisation du Deck et Joueur
         modeleDeck = new ModeleDeck();
         vueDeck = new VueDeck(modeleDeck, groupePouvoirs, groupeTours, this::selectionnerCarte);
 
@@ -73,13 +70,16 @@ public class GameController {
         vueArgent.actualiser(modeleJoueur.getArgent());
         vueCoeurs = new VueCoeurs(paneCoeurs);
 
-        // Liaison avec le ShopController créé par le FXML
         if (boutiqueController != null) {
             boutiqueController.init(this);
         }
 
+        // 3. Initialisation des Vagues, Ennemis et Tours
         waveController = new WaveController(this);
-        towerController = new TowerController(this, waveController);
+        ennemiController = new EnnemiController(this, waveController);
+        waveController.setEnnemiController(ennemiController);
+
+        towerController = new TowerController(this, ennemiController);
 
         waveController.demarrerVague();
     }
@@ -104,18 +104,21 @@ public class GameController {
         vueDeck.deselectionner();
         carteSelectionneeView = null;
         carteSelectionnee = null;
-        vueHover.cacher();
+        terrainController.cacherHover(); // On passe par le TerrainController
     }
 
     @FXML
     private void actualiserHover(MouseEvent event) {
-        if (carteSelectionnee == null) { vueHover.cacher(); return; }
-        vueHover.actualiser(event.getX(), event.getY());
+        if (carteSelectionnee == null) {
+            terrainController.cacherHover();
+            return;
+        }
+        terrainController.actualiserHover(event.getX(), event.getY());
     }
 
     @FXML
     private void cacherHover(MouseEvent event) {
-        vueHover.cacher();
+        terrainController.cacherHover();
     }
 
     @FXML
@@ -142,15 +145,61 @@ public class GameController {
     }
 
     public void arreterTout() {
-        waveController.arreter();
-        towerController.arreter();
+        if (waveController != null) waveController.arreter();
+        if (towerController != null) towerController.arreter();
+        if (ennemiController != null) ennemiController.arreterTout();
     }
 
+    // Utilisé par le WaveController pour changer de niveau
     public VueTerrain getVueTerrain() {
-        return vueTerrain;
+        return terrainController.getVueTerrain();
     }
 
     public TilePane getGridTerrain() {
         return gridTerrain;
+    }
+
+    /** Appelé par la Vue quand le joueur relâche un obstacle avec sa souris */
+    public void traiterDropObstacle(ImageView iv, int oldCol, int oldLigne) {
+        // On calcule la case d'arrivée en fonction du centre de l'image
+        int newCol = (int) ((iv.getLayoutX() + T / 2.0) / T);
+        int newLigne = (int) ((iv.getLayoutY() + T / 2.0) / T);
+
+        boolean deplacementReussi = false;
+
+        // Si le joueur l'a vraiment déplacé sur une autre case
+        if (newCol != oldCol || newLigne != oldLigne) {
+            // On vérifie qu'il n'y a pas de tour ici
+            boolean aUneTour = towerController != null && towerController.possedeTour(newLigne, newCol);
+
+            if (!aUneTour) {
+                deplacementReussi = modele.deplacerObstacle(oldLigne, oldCol, newLigne, newCol);
+            }
+        }
+
+        if (deplacementReussi) {
+            // Le déplacement est validé : on centre l'image sur la case
+            iv.setLayoutX(newCol * T);
+            iv.setLayoutY(newLigne * T);
+
+            // On ordonne aux monstres de recalculer leur chemin pour esquiver !
+            if (ennemiController != null) {
+                ennemiController.recalculerChemins();
+            }
+
+            // On mémorise la nouvelle position
+            iv.getProperties().put("oldCol", newCol);
+            iv.getProperties().put("oldLigne", newLigne);
+        } else {
+            // Annulé : l'obstacle retourne automatiquement à sa place d'origine
+            iv.setLayoutX(oldCol * T);
+            iv.setLayoutY(oldLigne * T);
+        }
+    }
+
+    public void changerNiveauMap(int nouveauNiveau) {
+        if (terrainController != null) {
+            terrainController.changerNiveauMap(nouveauNiveau, tilePaneEntites);
+        }
     }
 }

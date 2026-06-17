@@ -4,7 +4,7 @@ import com.example.sae2.modele.carte.ModeleTerrain;
 import com.example.sae2.modele.deck.ModeleDeck;
 import com.example.sae2.modele.joueur.ModeleJoueur;
 import com.example.sae2.modele.ennemis.ModeleEnnemi;
-import com.example.sae2.controller.WaveController.EtatEnnemi;
+import com.example.sae2.controller.EnnemiController.EtatEnnemi;
 import com.example.sae2.controller.TowerController.EtatTour;
 
 import javafx.collections.FXCollections;

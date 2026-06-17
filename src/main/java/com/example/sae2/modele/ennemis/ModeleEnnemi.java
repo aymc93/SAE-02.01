@@ -1,5 +1,10 @@
 package com.example.sae2.modele.ennemis;
 
+import com.example.sae2.modele.carte.ModeleTerrain;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class ModeleEnnemi {
 
     public static final int PV_MAX = 500;
@@ -54,15 +59,6 @@ public class ModeleEnnemi {
                 + (pv == 0 ? "  (MORT)" : ""));
     }
 
-    // Getters et Setters pour l'index du chemin
-    public int getIndexChemin() {
-        return indexChemin;
-    }
-
-    public void setIndexChemin(int indexChemin) {
-        this.indexChemin = indexChemin;
-    }
-
     public boolean estMort()  { return pv <= 0; }
     public int     getPv()    { return pv; }
     public int     getPvMax() { return pvMax; }
@@ -71,4 +67,28 @@ public class ModeleEnnemi {
     public double getY()          { return y; }
     public double getVitesse()    { return vitesse; }
     public String getTypeEnnemi() { return typeEnnemi; }
+
+
+    public List<int[]> calculerSonChemin(ModeleTerrain terrain, int tailleTuile) {
+        int ligneDepart = Math.max(0, (int) (this.y / tailleTuile));
+        int colonneDepart = Math.max(0, (int) (this.x / tailleTuile));
+
+        return BFS.calculerChemin(
+                ligneDepart, colonneDepart,
+                terrain.getLigneSortie(), terrain.getColonneSortie(),
+                terrain.getGrilleBloquee()
+        );
+    }
+
+    public boolean aAtteintSortie(ModeleTerrain terrain, int tailleTuile) {
+        int ligne = (int) (this.y / tailleTuile);
+        int colonne = (int) (this.x / tailleTuile);
+        return ligne == terrain.getLigneSortie() && colonne == terrain.getColonneSortie();
+    }
+
+    public List<ModeleEnnemi> genererEnnemisApresMort(int pvVague, double tailleTuile) {
+        return new ArrayList<>(); // Par défaut, un ennemi normal ne fait rien apparaître
+    }
+
+
 }

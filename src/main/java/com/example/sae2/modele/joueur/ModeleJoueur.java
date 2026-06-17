@@ -24,4 +24,8 @@ public class ModeleJoueur {
             argent -= montant;
         }
     }
+
+    public void ajouterArgent(int montant) {
+        this.argent += montant;
+    }
 }
