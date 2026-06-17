@@ -8,7 +8,7 @@
 
 <Pane xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.sae2.controller.ShopController"
-      mouseTransparent="false">
+      pickOnBounds="false">
 
     <VBox fx:id="interfaceBoutique" visible="false" alignment="CENTER" spacing="15"
           prefWidth="260" prefHeight="180"
