@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.sae2.controller.GameController"
+            stylesheets="@css/game.css">
+    <center>
+        <Pane fx:id="paneJeu">
+
+            <TilePane fx:id="gridTerrain"/>
+
+            <Pane fx:id="tilePaneEntites"/>
+
+            <Pane fx:id="paneTours"
+                  pickOnBounds="true"
+                  onMouseClicked="#placerTour"
+                  onMouseMoved="#actualiserHover"
+                  onMouseEntered="#actualiserHover"
+                  onMouseExited="#cacherHover"/>
+
+            <Pane fx:id="paneEnnemis" mouseTransparent="true"/>
+
+            <ImageView fx:id="hoverCase"
+                       fitWidth="64" fitHeight="64"
+                       preserveRatio="false"
+                       mouseTransparent="true"
+                       visible="false">
+                <image>
+                    <Image url="@images/UI/hover_case.png"/>
+                </image>
+            </ImageView>
+
+            <fx:include fx:id="boutique" source="boutique.fxml"/>
+
+        </Pane>
+    </center>
+
+    <bottom>
+        <StackPane>
+            <ImageView mouseTransparent="true">
+                <image>
+                    <Image url="@images/UI/panneau_bas.png"/>
+                </image>
+            </ImageView>
+
+            <HBox alignment="CENTER_LEFT" prefHeight="120">
+                <HBox fx:id="groupePouvoirs" spacing="12" alignment="CENTER" style="-fx-padding: 5 0 5 5;"/>
+
+                <Region minWidth="51" maxWidth="51"/>
+
+                <HBox fx:id="groupeTours" spacing="12" alignment="CENTER" style="-fx-padding: 5 0 5 0;"/>
+
+                <Region minWidth="102" maxWidth="102"/>
+
+                <VBox alignment="CENTER" spacing="4" style="-fx-padding: 4 15 4 0;">
+                    <HBox fx:id="paneCoeurs" spacing="4" alignment="CENTER"/>
+                    <HBox fx:id="paneArgent" spacing="1" alignment="CENTER"/>
+                </VBox>
+            </HBox>
+
+            <Region maxWidth="80" maxHeight="100"
+                    StackPane.alignment="CENTER_RIGHT"
+                    translateX="-20"
+                    style="-fx-cursor: hand;"
+                    onMouseClicked="#ouvrirBoutiqueDirecte"/>
+        </StackPane>
+    </bottom>
+</BorderPane>
