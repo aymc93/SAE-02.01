@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-/**
+/*
  * Vue du deck : crée tous les slots une seule fois au départ.
  * Quand une carte est utilisée, son ImageView est rendue invisible
  * (setVisible=false) sans être retirée du HBox — les autres cartes
@@ -49,7 +49,7 @@ public class VueDeck {
         }
     }
 
-    /** Marque visuellement une carte comme sélectionnée (retire l'ancienne sélection). */
+    /* Marque visuellement une carte comme sélectionnée */
     public void selectionner(ImageView vue) {
         if (vueSelectionnee != null)
             vueSelectionnee.getStyleClass().remove("carte-selectionnee");
@@ -58,12 +58,12 @@ public class VueDeck {
             vue.getStyleClass().add("carte-selectionnee");
     }
 
-    /** Retire la mise en évidence de la carte actuellement sélectionnée. */
+    /* Retire la mise en évidence de la carte actuellement sélectionnée. */
     public void deselectionner() {
         selectionner(null);
     }
 
-    /** Cache le premier slot VISIBLE correspondant au type donné. */
+    /* Cache le premier slot VISIBLE correspondant au type donné */
     public void masquerCarte(TypeCarte type) {
         for (int i = 0; i < slotTypes.size(); i++) {
             if (slotTypes.get(i) == type && slotViews.get(i).isVisible()) {
@@ -73,7 +73,7 @@ public class VueDeck {
         }
     }
 
-    // ── Construction d'une ImageView pour un slot ─────────────────────────────
+    // Construction d'une ImageView pour un slot
 
     private ImageView creerCarteView(TypeCarte carte) {
         ImageView iv = new ImageView();
@@ -107,31 +107,26 @@ public class VueDeck {
 
     public void ajouterCarteView(TypeCarte carte) {
         for (int i = 0; i < slotTypes.size(); i++) {
-            // On regarde si le slot correspond à la même catégorie (pouvoir ou tour)
-            boolean memeCategorie = carte.estPouvoir() ? slotTypes.get(i).estPouvoir() : !slotTypes.get(i).estPouvoir();
 
-            // Si le slot est de la même catégorie et qu'il est actuellement invisible (carte utilisée)
-            if (memeCategorie && !slotViews.get(i).isVisible()) {
+            if ((carte.estPouvoir() == slotTypes.get(i).estPouvoir())
+                    && !slotViews.get(i).isVisible()) {
 
-                // 1. On met à jour le type dans notre liste
                 slotTypes.set(i, carte);
 
-                // 2. On met à jour l'image de l'ImageView existante
                 ImageView iv = slotViews.get(i);
                 URL url = getClass().getResource("/com/example/sae2/images/Cartes/" + nomImage(carte));
+
                 if (url != null) {
                     iv.setImage(new Image(url.toExternalForm()));
                 }
 
-                // 3. IMPORTANT : On met à jour l'événement du clic pour utiliser la NOUVELLE carte
                 iv.setOnMouseClicked(e -> {
                     onCarteCliquee.accept(carte, iv);
                     e.consume();
                 });
 
-                // 4. On la rend à nouveau visible à sa place exacte
                 iv.setVisible(true);
-                break; // On a trouvé et réutilisé un emplacement, on s'arrête
+                return;
             }
         }
     }

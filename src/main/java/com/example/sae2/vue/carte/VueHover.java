@@ -12,7 +12,7 @@ public class VueHover {
         this.taille    = taille;
     }
 
-    /** Déplace l'indicateur sur la case survolée et le rend visible. */
+    /* Déplace l'indicateur sur la case survolée et le rend visible. */
     public void actualiser(double mouseX, double mouseY) {
         int col   = (int) (mouseX / taille);
         int ligne = (int) (mouseY / taille);

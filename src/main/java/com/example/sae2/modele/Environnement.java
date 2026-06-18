@@ -32,9 +32,8 @@ public class Environnement {
         this.toursPosees = FXCollections.observableHashMap();
     }
 
-    // -------------------------------------------------------------------------
+
     // Getters des composants principaux du jeu
-    // -------------------------------------------------------------------------
 
     public ModeleTerrain getTerrain() {
         return terrain;
@@ -52,9 +51,9 @@ public class Environnement {
         return tailleTuile;
     }
 
-    // -------------------------------------------------------------------------
+
+
     // Gestion des Ennemis (Synchronisé avec WaveController.ennemisActifs)
-    // -------------------------------------------------------------------------
 
     public ObservableMap<ModeleEnnemi, EtatEnnemi> getEnnemisActifs() {
         return ennemisActifs;
@@ -68,9 +67,7 @@ public class Environnement {
         this.ennemisActifs.remove(modele);
     }
 
-    // -------------------------------------------------------------------------
     // Gestion des Tours (Synchronisé avec TowerController.tours)
-    // -------------------------------------------------------------------------
 
     public ObservableMap<String, EtatTour> getToursPosees() {
         return toursPosees;

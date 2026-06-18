@@ -36,14 +36,14 @@ public class VueTour {
         this.parentPane = parentPane;
     }
 
-    /** Charge les sprites du dossier initial et joue l'animation d'apparition. */
+    /* Charge les sprites du dossier */
     public void initialiser(String dossier, Runnable onFin) {
         String base = BASE_IMAGES + dossier + "/";
         chargerSprites(base);
         jouerApparitionDepuis(base, onFin);
     }
 
-    /** Change les sprites après application d'un pouvoir et rejoue l'apparition. */
+    /* Change sprites après application pouvoir,rejoue l'apparition. */
     public void changerDossier(String dossier, Runnable onFin) {
         String base = BASE_IMAGES + dossier + "/";
         chargerSprites(base);
@@ -52,20 +52,20 @@ public class VueTour {
         jouerApparitionDepuis(base, onFin);
     }
 
-    /** Met à jour le sprite de direction si elle a changé. */
+    /* Met à jour le sprite de direction de la tour */
     public void setDirection(int direction) {
         if (direction == directionActuelle) return;
         directionActuelle = direction;
         if (!enClignotement) spriteView.setImage(idle[directionActuelle]);
     }
 
-    /** Passe le cercle de portée en mode alerte ou libre. */
+    /* Passe le cercle de portée en mode alerte ou libre. */
     public void setAlerte(boolean alerte) {
         portee.getStyleClass().removeAll("portee-libre", "portee-alerte");
         portee.getStyleClass().add(alerte ? "portee-alerte" : "portee-libre");
     }
 
-    /** Crée le nœud visuel du projectile et l'anime jusqu'à l'impact. */
+    /* Crée le nœud visuel du projectile et l'anime jusqu'à l'impact. */
     public void afficherProjectile(ModeleProjectile projectile) {
         Image     spriteProj = chargerImage(DOSSIER_DEFAUT + "projectile.png");
         ImageView vueSprite  = null;
@@ -113,8 +113,6 @@ public class VueTour {
             }
         }.start();
     }
-
-    // ── Privé ─────────────────────────────────────────────────────────────────
 
     private void chargerSprites(String base) {
         for (int i = 0; i < DIRECTIONS.length; i++) {

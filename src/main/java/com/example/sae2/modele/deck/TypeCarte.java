@@ -1,9 +1,8 @@
 package com.example.sae2.modele.deck;
 
-/**
+/*
  * Type de carte jouable depuis le deck.
  * Contient le dossier d'images, les dégâts et la vitesse du projectile.
- *
  * Vitesses projectile : Lent = 150 px/s · Moyen = 300 px/s · Rapide = 500 px/s
  */
 public enum TypeCarte {
@@ -23,15 +22,15 @@ public enum TypeCarte {
         this.vitesseProjectile  = vitesseProjectile;
     }
 
-    /** Dossier d'images sous resources/com/example/sae2/images/ */
+    /* Dossier d'images sous resources/com/example/sae2/images/ */
     public String getDossier()            { return dossier; }
 
-    /** Dégâts infligés à l'ennemi par projectile. */
+    /* Dégâts infligés à l'ennemi par projectile. */
     public int    getDegats()             { return degats; }
 
-    /** Vitesse du projectile en pixels par seconde. */
+    /* Vitesse du projectile en pixels par seconde. */
     public double getVitesseProjectile()  { return vitesseProjectile; }
 
-    /** Vrai pour BloodBag, Brimstone, SoyMilk. */
+    /* Vrai pour BloodBag, Brimstone, SoyMilk. */
     public boolean estPouvoir()           { return this != SIMPLE_TOWER; }
 }

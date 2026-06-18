@@ -40,14 +40,14 @@ public class VueEnnemi {
         actualiser();
     }
 
-    /** Met à jour la position du sprite et de la barre de vie. */
+    /* Met à jour  pos du sprite et de barre de vie. */
     public void actualiser() {
         imageView.setLayoutX(modele.getX());
         imageView.setLayoutY(modele.getY());
         barreVie.actualiser();
     }
 
-    /** Retire le sprite et la barre de vie du terrain. */
+    /* Retire le sprite et la barre de vie du terrain. */
     public void supprimer() {
         pane.getChildren().remove(imageView);
         barreVie.supprimer();
